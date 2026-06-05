@@ -250,6 +250,7 @@ with tab_bazar:
                         st.image(img_file, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
             
+            # Aquí se cierra el div del bloque y se inyecta el espaciador inferior de 35px
             st.markdown(f"""
                     <br>
                     <a href="{url_wa_vendedor}" target="_blank">
@@ -258,6 +259,7 @@ with tab_bazar:
                         </button>
                     </a>
                 </div>
+                <div style="margin-bottom: 35px;"></div>
             """, unsafe_allow_html=True)
 
 # ==========================================
