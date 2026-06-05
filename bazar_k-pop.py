@@ -250,7 +250,7 @@ with tab_bazar:
                         st.image(img_file, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
             
-            # Aquí se cierra el div del bloque y se inyecta el espaciador inferior de 35px
+            # Se cierra el div del bloque, se introduce el margen inferior y se agrega una línea de separación <hr>
             st.markdown(f"""
                     <br>
                     <a href="{url_wa_vendedor}" target="_blank">
@@ -259,7 +259,8 @@ with tab_bazar:
                         </button>
                     </a>
                 </div>
-                <div style="margin-bottom: 35px;"></div>
+                <div style="margin-bottom: 25px;"></div>
+                <hr style="border: 0; height: 2px; background: linear-gradient(to right, rgba(255,71,126,0), rgba(255,71,126,0.6), rgba(255,71,126,0)); margin-bottom: 35px;">
             """, unsafe_allow_html=True)
 
 # ==========================================
@@ -274,7 +275,7 @@ with tab_anunciarse:
     if "enviado_ok" not in st.session_state:
         st.session_state.enviado_ok = False
 
-    with st.form("form_anuncio", clear_on_submit=False):
+    with st.form("form_anuncio", clear_on_submit=True): # clear_on_submit limpia los inputs nativos al enviar
         st.markdown("### 👤 1. Datos de Contacto")
         col1, col2 = st.columns(2)
         with col1:
@@ -344,7 +345,7 @@ with tab_anunciarse:
             st.markdown("### 👀 Detalles de tu Solicitud")
             col_p1, col_p2 = st.columns([1, 2])
             with col_p1:
-                st.metric(label="Monto por Validar", value="$15 MXN")
+                st.metric(label="Monto por Validar", value="$25 MXN")
                 st.write(f"🆔 **ID Asignado:** `{id_b}`")
             with col_p2:
                 st.write(f"👤 **Vendedora:** {datos['vendedor']}")
@@ -373,7 +374,7 @@ with tab_anunciarse:
             msg_encoded = msg.replace(' ', '%20').replace('\n', '%0A')
             url_wa = f"https://wa.me/{8143029578}?text={msg_encoded}"
             
-            # PASO A: El botón de Streamlit guarda en base de datos local primero para que NO se pierda
+            # PASO A: Guarda en el panel interno del administrador e inmediatamente limpia el historial visual
             if not st.session_state.enviado_ok:
                 if st.button("📲 Click Para Registrar y Preparar Envío de WhatsApp", key="btn_disparador_wa"):
                     st.session_state.bloques_db[id_b] = {
@@ -389,7 +390,7 @@ with tab_anunciarse:
                     st.session_state.enviado_ok = True
                     st.rerun()
             else:
-                # PASO B: Se habilita el botón nativo HTML con target="_blank" para abrir en otra pestaña limpia
+                # PASO B: Muestra el botón de redirección final y limpia el formulario para un nuevo registro
                 st.success("✅ ¡Datos registrados con éxito en el panel de administración!")
                 st.markdown(f"""
                     <a class="btn-wa-nativo" href="{url_wa}" target="_blank">
@@ -397,6 +398,12 @@ with tab_anunciarse:
                     </a>
                 """, unsafe_allow_html=True)
                 st.info("Al dar clic arriba se abrirá el chat. No olvides adjuntar foto del comprobante.")
+                
+                # Botón extra opcional para limpiar el caché visual manualmente si deciden registrar otro bloque antes de ir a WA
+                if st.button("🧹 Limpiar historial y registrar nueva tiendita"):
+                    st.session_state.pre_registro = None
+                    st.session_state.enviado_ok = False
+                    st.rerun()
                 
             st.markdown('</div>', unsafe_allow_html=True)
 
