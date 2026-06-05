@@ -250,7 +250,7 @@ with tab_bazar:
                         st.image(img_file, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
             
-            # Se cierra el div del bloque, se introduce el margen inferior y se agrega una línea de separación <hr>
+            # Se cierra el div del bloque, se introduce el margen inferior y se agrega la línea separadora extra gruesa (5px)
             st.markdown(f"""
                     <br>
                     <a href="{url_wa_vendedor}" target="_blank">
@@ -260,7 +260,7 @@ with tab_bazar:
                     </a>
                 </div>
                 <div style="margin-bottom: 25px;"></div>
-                <hr style="border: 0; height: 2px; background: linear-gradient(to right, rgba(255,71,126,0), rgba(255,71,126,0.6), rgba(255,71,126,0)); margin-bottom: 35px;">
+                <hr style="border: 0; height: 5px; background-color: #E6005C; margin-bottom: 45px; border-radius: 5px;">
             """, unsafe_allow_html=True)
 
 # ==========================================
