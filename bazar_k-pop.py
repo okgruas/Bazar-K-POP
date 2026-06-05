@@ -39,12 +39,13 @@ st.markdown("""
         font-weight: bold !important;
     }
     
-    /* Arreglo de texto en los campos de escritura */
+    /* Arreglo de texto en los campos de escritura y forzar cursor (caret) negro */
     textarea, input[type="text"], div[data-testid="stTextArea"] textarea, div[data-testid="stTextInput"] input {
         background-color: #FFFFFF !important;
         color: #1A1A1A !important;
         border: 2px solid #FF477E !important;
         -webkit-text-fill-color: #1A1A1A !important;
+        caret-color: #1A1A1A !important; /* Fuerza la barrita parpadeante a color negro */
     }
     
     /* Marcador de posición (placeholder) tenue */
@@ -250,7 +251,7 @@ with tab_bazar:
                         st.image(img_file, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
             
-            # Se cierra el div del bloque, se introduce el margen inferior y se agrega la línea separadora extra gruesa (5px)
+            # Se cierra el div del bloque, se inyecta el agradecimiento y después la línea gruesa rosa de 5px
             st.markdown(f"""
                     <br>
                     <a href="{url_wa_vendedor}" target="_blank">
@@ -259,7 +260,9 @@ with tab_bazar:
                         </button>
                     </a>
                 </div>
-                <div style="margin-bottom: 25px;"></div>
+                <div style="text-align: center; color: #D81159; font-weight: bold; font-size: 15px; margin-top: 15px; margin-bottom: 15px;">
+                    ✨ ¡Gracias por tu preferencia! ✨
+                </div>
                 <hr style="border: 0; height: 5px; background-color: #E6005C; margin-bottom: 45px; border-radius: 5px;">
             """, unsafe_allow_html=True)
 
@@ -390,7 +393,7 @@ with tab_anunciarse:
                     st.session_state.enviado_ok = True
                     st.rerun()
             else:
-                # PASO B: Muestra el botón de redirección final y limpia el formulario para un nuevo registro
+                # PASO B: Muestra el botón de redirección final
                 st.success("✅ ¡Datos registrados con éxito en el panel de administración!")
                 st.markdown(f"""
                     <a class="btn-wa-nativo" href="{url_wa}" target="_blank">
@@ -398,12 +401,6 @@ with tab_anunciarse:
                     </a>
                 """, unsafe_allow_html=True)
                 st.info("Al dar clic arriba se abrirá el chat. No olvides adjuntar foto del comprobante.")
-                
-                # Botón extra opcional para limpiar el caché visual manualmente si deciden registrar otro bloque antes de ir a WA
-                if st.button("🧹 Limpiar historial y registrar nueva tiendita"):
-                    st.session_state.pre_registro = None
-                    st.session_state.enviado_ok = False
-                    st.rerun()
                 
             st.markdown('</div>', unsafe_allow_html=True)
 
