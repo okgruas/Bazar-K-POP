@@ -22,7 +22,8 @@ IMGBB_API_KEY = "c72da82c65cce967aac091defc1f41dd"
 # --- CONEXIÓN DIRECTA A GOOGLE SHEETS ---
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
-    df_sheets = conn.read(spreadsheet=URL_HOJA_CALCULO, ttl="2s").dropna(how="all")
+    # Forzamos ttl=0 para que siempre traiga lo más nuevo al recargar la página
+    df_sheets = conn.read(spreadsheet=URL_HOJA_CALCULO, ttl=0).dropna(how="all")
 except Exception as e:
     df_sheets = pd.DataFrame(columns=["id", "vendedor", "whatsapp", "zona", "categoria", "articulos", "estado", "fecha", "fotos_links", "comprobante_link"])
 
@@ -42,39 +43,60 @@ def subir_a_imgbb(archivo_imagen):
         pass
     return None
 
-# --- SINCRONIZACIÓN DE BASE DE DATOS AL INICIAR ---
+# --- SINCRONIZACIÓN DE BASE DE DATOS ULTRA RESISTENTE AL INICIAR ---
 if "bloques_db" not in st.session_state:
     st.session_state.bloques_db = {}
 
+# Limpiamos y aseguramos que el DataFrame tenga los nombres de columnas correctos
+df_sheets.columns = [c.strip() for c in df_sheets.columns]
+
 for _, row in df_sheets.iterrows():
-    b_id = str(row["id"])
-    links_fotos = str(row.get("fotos_links", "")).split(",") if pd.notna(row.get("fotos_links", "")) else []
-    links_fotos = [l for l in links_fotos if l.strip()]
-    
-    st.session_state.bloques_db[b_id] = {
-        "vendedor": str(row["vendedor"]),
-        "whatsapp": str(row["whatsapp"]),
-        "zona": str(row["zona"]),
-        "categoria": str(row["categoria"]),
-        "articulos": str(row["articulos"]),
-        "estado": str(row["estado"]),
-        "fecha": str(row["fecha"]),
-        "imagenes": links_fotos,  # Guardamos los links para renderizar
-        "comprobante_link": str(row.get("comprobante_link", ""))
-    }
+    try:
+        b_id = str(row["id"]).strip()
+        if not b_id or b_id == "nan":
+            continue
+            
+        # Validar los links de fotos de manera mega segura
+        links_fotos = []
+        if "fotos_links" in row and pd.notna(row["fotos_links"]):
+            links_fotos = [l.strip() for l in str(row["fotos_links"]).split(",") if l.strip()]
+            
+        comp_link = ""
+        if "comprobante_link" in row and pd.notna(row["comprobante_link"]):
+            comp_link = str(row["comprobante_link"]).strip()
+
+        st.session_state.bloques_db[b_id] = {
+            "vendedor": str(row.get("vendedor", "Anónimo")),
+            "whatsapp": str(row.get("whatsapp", "")),
+            "zona": str(row.get("zona", "")),
+            "categoria": str(row.get("categoria", "")),
+            "articulos": str(row.get("articulos", "")),
+            "estado": str(row.get("estado", "⏳ En espera de verificación")),
+            "fecha": str(row.get("fecha", "")),
+            "imagenes": links_fotos,  
+            "comprobante_link": comp_link
+        }
+    except Exception as e:
+        # Si una fila está rota, que no rompa la lectura de las demás
+        continue
 
 # --- FUNCIÓN PARA GUARDAR O ACTUALIZAR EN GOOGLE SHEETS ---
 def guardar_en_sheets(id_b, info_b):
     try:
+        # Volver a leer la nube actual sin caché para evitar sobreescrituras accidentales
         df_actual = conn.read(spreadsheet=URL_HOJA_CALCULO, ttl=0).dropna(how="all")
-        # Eliminar el registro viejo si ya existe para no duplicar filas
-        df_actual = df_actual[df_actual["id"].astype(str) != str(id_b)]
+        df_actual.columns = [c.strip() for c in df_actual.columns]
         
-        # Manejo de imágenes (si vienen como archivos de Streamlit o como strings de links de la DB)
+        # Eliminar el registro viejo si ya existe en la tabla para actualizarlo limpiamente
+        if not df_actual.empty and "id" in df_actual.columns:
+            df_actual = df_actual[df_actual["id"].astype(str).str.strip() != str(id_b).strip()]
+        
+        # Procesar imágenes (Convertir archivos binarios de Streamlit a links HTTPS reales)
         lista_links = []
         for img in info_b.get("imagenes", []):
             if isinstance(img, str):
-                lista_links.append(img)
+                if img.startswith("http"):
+                    lista_links.append(img)
             else:
                 link_subido = subir_a_imgbb(img)
                 if link_subido:
@@ -84,6 +106,7 @@ def guardar_en_sheets(id_b, info_b):
         if url_comp and not isinstance(url_comp, str):
             url_comp = subir_a_imgbb(url_comp) or ""
 
+        # Crear la nueva fila armada de forma idéntica a tu Sheets
         nuevo_registro = pd.DataFrame([{
             "id": str(id_b),
             "vendedor": str(info_b["vendedor"]),
@@ -97,14 +120,15 @@ def guardar_en_sheets(id_b, info_b):
             "comprobante_link": str(url_comp)
         }])
         
+        # Combinar y mandar directamente a la API de Google Sheets
         df_actual = pd.concat([df_actual, nuevo_registro], ignore_index=True)
         conn.update(spreadsheet=URL_HOJA_CALCULO, data=df_actual)
         
-        # Actualizar memoria local con los nuevos links resueltos
+        # Refrescar nuestra memoria local para que se muestre al instante
         st.session_state.bloques_db[id_b]["imagenes"] = lista_links
         st.session_state.bloques_db[id_b]["comprobante_link"] = url_comp
-    except:
-        pass
+    except Exception as e:
+        st.error(f"Error al conectar con Google Sheets: {e}")
 
 # --- ESTILOS CSS REFORZADOS (TU DISEÑO ORIGINAL EXACTO) ---
 st.markdown("""
@@ -149,7 +173,7 @@ st.markdown("""
         color: #1A1A1A !important;
         border: 2px solid #FF477E !important;
         -webkit-text-fill-color: #1A1A1A !important;
-        caret-color: #1A1A1A !important; /* Fuerza la barrita parpadeante a color negro */
+        caret-color: #1A1A1A !important;
     }
     
     /* Marcador de posición (placeholder) tenue */
@@ -211,7 +235,7 @@ st.markdown("""
         -webkit-text-fill-color: #FFFFFF !important;
     }
 
-    /* BOTÓN DE ACCIÓN (Verde, grande, sin cuadro negro de fondo) */
+    /* BOTÓN DE ACCIÓN (Verde, grande) */
     div.stButton > button {
         background-color: #25D366 !important;
         color: #1A1A1A !important;
@@ -417,12 +441,12 @@ with tab_anunciarse:
         fotos_articulos = st.file_uploader("Selecciona tus imágenes:", type=["jpg", "png", "jpeg"], accept_multiple_files=True)
         
         st.markdown("---")
-        st.markdown("### 💳 4. Pago de Validación ($25 MXN)")
+        st.markdown("### 💳 4. Pago de Validation ($25 MXN)")
         st.markdown("""
             <div style="background-color: #FFFFFF; padding: 20px; border-radius: 10px; border: 2px solid #D81159;">
                 <p style="color: #D81159 !important; font-size: 17px !important; margin: 0 0 5px 0; font-weight: 900;">🏛️ BANCO: NU MÉXICO</p>
                 <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0 0 5px 0; font-family: monospace; font-weight: bold;">🔑 CLABE: 0123 4567 8901 2345 67</p>
-                <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0; font-weight: bold;">👤 TITULAR: CAPITANA ALBATROS</p>
+                <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0; font-weight: bold;">👤 TITULAR: RAQUEL COVARRUBIAS</p>
             </div>
         """, unsafe_allow_html=True)
         st.write("")
@@ -444,8 +468,8 @@ with tab_anunciarse:
                     "zona": zona_entrega,
                     "categoria": tipo_articulo,
                     "articulos": lista_articulos,
-                    "imagenes": fotos_articulos, # Temporalmente archivos para la vista previa
-                    "comprobante_link": comprobante, # Temporalmente archivo
+                    "imagenes": fotos_articulos, 
+                    "comprobante_link": comprobante, 
                     "estado": "⏳ En espera de verificación",
                     "fecha": datetime.now().strftime("%d/%m/%Y")
                 }
@@ -498,9 +522,9 @@ with tab_anunciarse:
             if not st.session_state.enviado_ok:
                 if st.button("📲 Click Para Registrar y Preparar Envío de WhatsApp", key="btn_disparador_wa"):
                     with st.spinner("Guardando en la nube de forma segura... ✨"):
-                        # Creamos registro base en la memoria local
+                        # Registramos localmente
                         st.session_state.bloques_db[id_b] = datos
-                        # Procesamos imágenes a la nube y guardamos en Sheets de forma permanente
+                        # Forzamos la subida a ImgBB y escritura instantánea en Google Sheets
                         guardar_en_sheets(id_b, datos)
                         st.session_state.enviado_ok = True
                         st.rerun()
@@ -569,7 +593,8 @@ with tab_admin:
                         del st.session_state.bloques_db[b_id]
                     try:
                         df_actual = conn.read(spreadsheet=URL_HOJA_CALCULO, ttl=0).dropna(how="all")
-                        df_actual = df_actual[df_actual["id"].astype(str) != str(b_id)]
+                        df_actual.columns = [c.strip() for c in df_actual.columns]
+                        df_actual = df_actual[df_actual["id"].astype(str).str.strip() != str(b_id).strip()]
                         conn.update(spreadsheet=URL_HOJA_CALCULO, data=df_actual)
                     except:
                         pass
