@@ -176,6 +176,18 @@ st.markdown("""
         margin-top: 20px;
         font-weight: normal !important;
     }
+
+    /* Estilo para las advertencias de seguridad dentro del bloque */
+    .advertencia-seguridad {
+        background-color: #FFF3CD !important;
+        color: #856404 !important;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 13px !important;
+        border-left: 4px solid #FFC107;
+        margin-top: 15px;
+        font-weight: normal !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -222,6 +234,15 @@ with tab_bazar:
                         st.image(img_file, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
             
+            # Leyenda de seguridad y deslinde agregada al final de cada bloque activo
+            st.markdown("""
+                <div class="advertencia-seguridad">
+                    ⚠️ <b>Aviso de Seguridad:</b> Recuerda realizar tus entregas únicamente en <b>lugares públicos y concurridos</b>. 
+                    Cada vendedora se hace completamente responsable de sus artículos, precios, acuerdos de entrega y citas correspondientes. 
+                    Este espacio funciona únicamente como catálogo digital, por lo que toda transacción y trato es totalmente ajeno a la aplicación.
+                </div>
+            """, unsafe_allow_html=True)
+
             st.markdown(f"""
                     <br>
                     <a href="{url_wa_vendedor}" target="_blank">
