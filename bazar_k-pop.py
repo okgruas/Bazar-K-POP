@@ -439,18 +439,67 @@ with tab_admin:
     
     if clave_ingresada == CONTRASENA_ADMIN:
         st.success("Acceso Autorizado - Modo Gestor")
+        
+        # --- NUEVA SECCIÓN: AGREGAR MANUALMENTE DESDE EL PANEL ---
+        st.markdown("### ➕ Registrar Vendedora Aprobada Directamente")
+        st.write("Si ya te pagaron por WhatsApp, puedes darla de alta rápido desde aquí para probar cómo se ve en el Bazar:")
+        
+        with st.form("admin_alta_manual", clear_on_submit=True):
+            col_ad1, col_ad2 = st.columns(2)
+            with col_ad1:
+                adm_nombre = st.text_input("Nombre de la Vendedora:")
+                adm_whatsapp = st.text_input("WhatsApp (10 dígitos):")
+            with col_ad2:
+                adm_zona = st.text_input("Punto Seguro de Entrega:")
+                adm_cat = st.selectbox("Categoría:", ["K-Pop (Photocards/Coleccionables)", "Mi Clóset (Ropa/Accesorios)"])
+            
+            adm_articulos = st.text_area("Artículos (Uno por renglón):")
+            btn_adm_guardar = st.form_submit_button("🟢 ACTIVAR E INYECTAR AL BAZAR TRAS VALIDAR")
+            
+            if btn_adm_guardar:
+                if adm_nombre and adm_whatsapp and adm_articulos:
+                    id_manual = f"BZR-ADM-{datetime.now().strftime('%H%M%S')}"
+                    # Lo inyectamos directo al estado de la sesión para verlo de inmediato
+                    st.session_state.bloques_db[id_manual] = {
+                        "vendedor": adm_nombre,
+                        "whatsapp": adm_whatsapp,
+                        "zona": adm_zona,
+                        "categoria": adm_cat,
+                        "articulos": adm_articulos,
+                        "imagenes": [],
+                        "estado": "🟢 ACTIVO",
+                        "fecha": datetime.now().strftime("%d/%m/%Y")
+                    }
+                    st.success(f"✅ ¡Bloque `{id_manual}` activado localmente! Revisa la pestaña 'Ver el Bazar' para ver cómo quedó.")
+                    st.rerun()
+                else:
+                    st.warning("Completa el nombre, WhatsApp y los artículos para poder dar el alta.")
+
+        st.markdown("---")
         st.markdown("### 🛠️ Control Manual de Base de Datos")
         st.info("💡 Como Google Sheets bloquea las escrituras automatizadas públicas, copia los datos que te lleguen a tu WhatsApp y pégalos en tu archivo de Google Excel para que aparezcan aquí fijas para todo el mundo.")
         
+        # Si hay bloques en memoria (ya sean del Excel o creados manualmente arriba), los listamos con opción de eliminarlos
         if st.session_state.bloques_db:
+            st.write("#### Lista de Tienditas en Memoria:")
             for b_id in list(st.session_state.bloques_db.keys()):
                 b_info = st.session_state.bloques_db[b_id]
-                st.markdown(f"""
-                    <div class="admin-box">
-                        <span style="color:#D81159;"><b>ID:</b> {b_id}</span> | <b>Vendedora:</b> {b_info['vendedor']}<br>
-                        <b>Artículos:</b> {b_info['articulos']}<br>
-                        <b>Estado:</b> <code>{b_info['estado']}</code>
-                    </div>
-                """, unsafe_allow_html=True)
-
+                
+                # Una cajita limpia para cada vendedor registrado
+                with st.container():
+                    st.markdown(f"""
+                        <div class="admin-box" style="border-left: 6px solid #E6005C; padding: 10px; margin-bottom: 10px;">
+                            <span style="color:#D81159;"><b>ID:</b> {b_id}</span> | <b>Vendedora:</b> {b_info['vendedor']}<br>
+                            <b>Artículos:</b> {b_info['articulos']}<br>
+                            <b>Estado actual:</b> <code>{b_info['estado']}</code>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Botón individual para remover el bloque de la pantalla si es necesario
+                    if st.button(f"🗑️ Quitar Temporalmente ID: {b_id}", key=f"del_{b_id}"):
+                        del st.session_state.bloques_db[b_id]
+                        st.toast(f"Publicación {b_id} removida de la sesión.")
+                        st.rerun()
+        else:
+            st.write("No hay bloques registrados en la sesión actualmente. Usa el formulario de arriba o conecta tu Sheets para poblar la lista.")
 st.markdown('<div class="seccion-quejas">Quejas, sugerencias y aclaraciones, con Capitana Albatros: 8143029578</div>', unsafe_allow_html=True)
