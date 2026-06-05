@@ -1,7 +1,5 @@
 import streamlit as st
 from datetime import datetime
-from streamlit_gsheets import GSheetsConnection
-import pandas as pd
 import requests
 
 # Configuración de la página
@@ -14,18 +12,9 @@ st.set_page_config(
 # ⚠️ CONFIGURACIÓN DE ADMINISTRADOR ⚠️
 TELEFONO_ADMIN_WHATSAPP = "528143029578"
 CONTRASENA_ADMIN = "bazar123"
-URL_HOJA_CALCULO = "https://docs.google.com/spreadsheets/d/1uj8Vkw3uQn5GYy7LD7ADwXH3mtpvpZu2vQtiZ33yCXQ/edit?usp=sharing"
 
 # 🔥 TU LLAVE DE IMGBB INTEGRADA 🔥
 IMGBB_API_KEY = "c72da82c65cce967aac091defc1f41dd"
-
-# --- CONEXIÓN DIRECTA A GOOGLE SHEETS ---
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-    # Forzamos ttl=0 para que siempre traiga lo más nuevo al recargar la página
-    df_sheets = conn.read(spreadsheet=URL_HOJA_CALCULO, ttl=0).dropna(how="all")
-except Exception as e:
-    df_sheets = pd.DataFrame(columns=["id", "vendedor", "whatsapp", "zona", "categoria", "articulos", "estado", "fecha", "fotos_links", "comprobante_link"])
 
 # --- FUNCIÓN PARA CONVERTIR IMÁGENES EN ENLACES WEB ---
 def subir_a_imgbb(archivo_imagen):
@@ -43,92 +32,41 @@ def subir_a_imgbb(archivo_imagen):
         pass
     return None
 
-# --- SINCRONIZACIÓN DE BASE DE DATOS ULTRA RESISTENTE AL INICIAR ---
+# =========================================================================
+# 📦 TU BASE DE DATOS FIJA Y PERMANENTE (Estilo tus catálogos anteriores)
+# Aquí puedes agregar, editar o activar manualmente las tienditas directamente en el código.
+# Si quieres activar una nueva vendedora, solo cambia su estado a "🟢 ACTIVO".
+# =========================================================================
 if "bloques_db" not in st.session_state:
-    st.session_state.bloques_db = {}
-
-# Limpiamos y aseguramos que el DataFrame tenga los nombres de columnas correctos
-df_sheets.columns = [c.strip() for c in df_sheets.columns]
-
-for _, row in df_sheets.iterrows():
-    try:
-        b_id = str(row["id"]).strip()
-        if not b_id or b_id == "nan":
-            continue
-            
-        # Validar los links de fotos de manera mega segura
-        links_fotos = []
-        if "fotos_links" in row and pd.notna(row["fotos_links"]):
-            links_fotos = [l.strip() for l in str(row["fotos_links"]).split(",") if l.strip()]
-            
-        comp_link = ""
-        if "comprobante_link" in row and pd.notna(row["comprobante_link"]):
-            comp_link = str(row["comprobante_link"]).strip()
-
-        st.session_state.bloques_db[b_id] = {
-            "vendedor": str(row.get("vendedor", "Anónimo")),
-            "whatsapp": str(row.get("whatsapp", "")),
-            "zona": str(row.get("zona", "")),
-            "categoria": str(row.get("categoria", "")),
-            "articulos": str(row.get("articulos", "")),
-            "estado": str(row.get("estado", "⏳ En espera de verificación")),
-            "fecha": str(row.get("fecha", "")),
-            "imagenes": links_fotos,  
-            "comprobante_link": comp_link
+    st.session_state.bloques_db = {
+        "BZR-01": {
+            "vendedor": "Yajaira Leija",
+            "whatsapp": "528143029578",
+            "zona": "Metro Cuauhtémoc / Centro de Monterrey",
+            "categoria": "K-Pop (Photocards/Coleccionables)",
+            "articulos": "- Photocard Seungmin ODDINARY (Perfecto Estado) - $150\n- Álbum Stray Kids 5-STAR (Sin PC) - $250\n- Mini Banner Stray Kids Oficial - $100",
+            "estado": "🟢 ACTIVO",
+            "fecha": "05/06/2026",
+            "imagenes": [
+                "https://i.ibb.co/6wXb7Y0/sample-skz1.jpg",
+                "https://i.ibb.co/4p3L8X1/sample-skz2.jpg"
+            ],
+            "comprobante_link": ""
+        },
+        "BZR-02": {
+            "vendedor": "Julieta Moda",
+            "whatsapp": "528143029578",
+            "zona": "Plaza Fiesta San Agustín",
+            "categoria": "Mi Clóset (Ropa/Accesorios)",
+            "articulos": "- Blusa Rosa Pastel Estilo Shein (Talla M) - $120\n- Vestido Coreano Denim (Talla S, Nuevo) - $300\n- Gorro de Invierno Blanco K-Pop - $90",
+            "estado": "🟢 ACTIVO",
+            "fecha": "05/06/2026",
+            "imagenes": [
+                "https://i.ibb.co/2sn7X9M/sample-closet1.jpg"
+            ],
+            "comprobante_link": ""
         }
-    except Exception as e:
-        # Si una fila está rota, que no rompa la lectura de las demás
-        continue
-
-# --- FUNCIÓN PARA GUARDAR O ACTUALIZAR EN GOOGLE SHEETS ---
-def guardar_en_sheets(id_b, info_b):
-    try:
-        # Volver a leer la nube actual sin caché para evitar sobreescrituras accidentales
-        df_actual = conn.read(spreadsheet=URL_HOJA_CALCULO, ttl=0).dropna(how="all")
-        df_actual.columns = [c.strip() for c in df_actual.columns]
-        
-        # Eliminar el registro viejo si ya existe en la tabla para actualizarlo limpiamente
-        if not df_actual.empty and "id" in df_actual.columns:
-            df_actual = df_actual[df_actual["id"].astype(str).str.strip() != str(id_b).strip()]
-        
-        # Procesar imágenes (Convertir archivos binarios de Streamlit a links HTTPS reales)
-        lista_links = []
-        for img in info_b.get("imagenes", []):
-            if isinstance(img, str):
-                if img.startswith("http"):
-                    lista_links.append(img)
-            else:
-                link_subido = subir_a_imgbb(img)
-                if link_subido:
-                    lista_links.append(link_subido)
-
-        url_comp = info_b.get("comprobante_link", "")
-        if url_comp and not isinstance(url_comp, str):
-            url_comp = subir_a_imgbb(url_comp) or ""
-
-        # Crear la nueva fila armada de forma idéntica a tu Sheets
-        nuevo_registro = pd.DataFrame([{
-            "id": str(id_b),
-            "vendedor": str(info_b["vendedor"]),
-            "whatsapp": str(info_b["whatsapp"]),
-            "zona": str(info_b["zona"]),
-            "categoria": str(info_b["categoria"]),
-            "articulos": str(info_b["articulos"]),
-            "estado": str(info_b["estado"]),
-            "fecha": str(info_b["fecha"]),
-            "fotos_links": ",".join(lista_links),
-            "comprobante_link": str(url_comp)
-        }])
-        
-        # Combinar y mandar directamente a la API de Google Sheets
-        df_actual = pd.concat([df_actual, nuevo_registro], ignore_index=True)
-        conn.update(spreadsheet=URL_HOJA_CALCULO, data=df_actual)
-        
-        # Refrescar nuestra memoria local para que se muestre al instante
-        st.session_state.bloques_db[id_b]["imagenes"] = lista_links
-        st.session_state.bloques_db[id_b]["comprobante_link"] = url_comp
-    except Exception as e:
-        st.error(f"Error al conectar con Google Sheets: {e}")
+    }
 
 # --- ESTILOS CSS REFORZADOS (TU DISEÑO ORIGINAL EXACTO) ---
 st.markdown("""
@@ -354,7 +292,7 @@ with tab_bazar:
     bloques_activos = {k: v for k, v in st.session_state.bloques_db.items() if "ACTIVO" in str(v['estado'])}
     
     if not bloques_activos:
-        st.info("No hay tienditas activas en este momento. Las publicaciones aprobadas aparecerán aquí de inmediato.")
+        st.info("No hay tienditas activas en este momento.")
     else:
         lista_bloques = list(bloques_activos.items())
         columnas_por_fila = 3
@@ -365,7 +303,7 @@ with tab_bazar:
             
             for idx_col, (id_b, info_b) in enumerate(fila_bloques):
                 with cols[idx_col]:
-                    texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
+                    texto_mensaje = f"Hola, vengo del Bazar Digital. Me interesaron tus artículos del bloque {id_b}. ✨🛍️"
                     texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
                     url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
 
@@ -437,30 +375,37 @@ with tab_anunciarse:
             placeholder="Ejemplo:\n- Blusa Azul Talla XL - $150\n- Photocard Seungmin ODDINARY - $120"
         )
         
-        st.markdown("### 📸 3. Fotos de tus Artículos (Máximo 15)")
+        st.markdown("### 📸 3. Fotos de tus Artículos (Anexa links de fotos de ImgBB, Facebook o Pinterest o súbelas aquí)")
         fotos_articulos = st.file_uploader("Selecciona tus imágenes:", type=["jpg", "png", "jpeg"], accept_multiple_files=True)
         
         st.markdown("---")
-        st.markdown("### 💳 4. Pago de Validation ($25 MXN)")
+        st.markdown("### 💳 4. Pago de Validación ($25 MXN)")
         st.markdown("""
             <div style="background-color: #FFFFFF; padding: 20px; border-radius: 10px; border: 2px solid #D81159;">
                 <p style="color: #D81159 !important; font-size: 17px !important; margin: 0 0 5px 0; font-weight: 900;">🏛️ BANCO: NU MÉXICO</p>
                 <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0 0 5px 0; font-family: monospace; font-weight: bold;">🔑 CLABE: 0123 4567 8901 2345 67</p>
-                <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0; font-weight: bold;">👤 TITULAR: RAQUEL COVARRUBIAS</p>
+                <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0; font-weight: bold;">👤 TITULAR: CAPITANA ALBATROS</p>
             </div>
         """, unsafe_allow_html=True)
         st.write("")
-        comprobante = st.file_uploader("Sube la foto de tu comprobante de transferencia *", type=["jpg", "png", "jpeg"])
         
         enviar_anuncio = st.form_submit_button("Subir Bloque de Anuncios para Validación")
 
         if enviar_anuncio:
-            if fotos_articulos and len(fotos_articulos) > 15:
-                st.error("No puedes subir más de 15 fotos.")
-            elif not (nombre_vendedor and whatsapp_vendedor and zona_entrega and lista_articulos and comprobante):
-                st.error("Por favor, llena todos los campos obligatorios (*) y carga tu comprobante.")
+            if not (nombre_vendedor and whatsapp_vendedor and zona_entrega and lista_articulos):
+                st.error("Por favor, llena todos los campos obligatorios (*).")
             else:
                 id_transaccion = f"BZR-{datetime.now().strftime('%d%H%M%S')}"
+                
+                # Convertir imágenes cargadas a links en la nube al instante
+                links_subidos = []
+                if fotos_articulos:
+                    with st.spinner("Subiendo imágenes a la nube de forma segura... ✨"):
+                        for f in fotos_articulos:
+                            url_i = subir_a_imgbb(f)
+                            if url_i:
+                                links_subidos.append(url_i)
+
                 st.session_state.pre_registro = {
                     "id": id_transaccion,
                     "vendedor": nombre_vendedor,
@@ -468,8 +413,7 @@ with tab_anunciarse:
                     "zona": zona_entrega,
                     "categoria": tipo_articulo,
                     "articulos": lista_articulos,
-                    "imagenes": fotos_articulos, 
-                    "comprobante_link": comprobante, 
+                    "imagenes": links_subidos, 
                     "estado": "⏳ En espera de verificación",
                     "fecha": datetime.now().strftime("%d/%m/%Y")
                 }
@@ -479,126 +423,102 @@ with tab_anunciarse:
         datos = st.session_state.pre_registro
         id_b = datos["id"]
         
-        if id_b in st.session_state.bloques_db and "ACTIVO" in str(st.session_state.bloques_db[id_b]['estado']):
-            st.session_state.pre_registro = None
-            st.session_state.enviado_ok = False
-            st.rerun()
+        st.markdown('<div class="preview-container">', unsafe_allow_html=True)
+        st.warning("⏳ Tu registro se procesó en el navegador. Realiza el paso final de WhatsApp para guardarlo permanentemente en el sistema.")
+        
+        st.markdown("### 👀 Detalles de tu Solicitud")
+        col_p1, col_p2 = st.columns([1, 2])
+        with col_p1:
+            st.metric(label="Monto por Validar", value="$25 MXN")
+            st.write(f"🆔 **ID Asignado:** `{id_b}`")
+        with col_p2:
+            st.write(f"👤 **Vendedora:** {datos['vendedor']}")
+            st.write(f"📍 **Punto Seguro:** {datos['zona']}")
+            st.write("**📝 Lista enviada:**")
+            st.markdown(f'<div class="articulos-box-shein">{datos["articulos"]}</div>', unsafe_allow_html=True)
+        
+        if datos["imagenes"]:
+            st.write("**📸 Enlaces de tus imágenes generadas:**")
+            for lk in datos["imagenes"]:
+                st.code(lk)
+        
+        st.markdown("---")
+        st.markdown("### 📲 ¡Paso Final Obligatorio!")
+        
+        # Formateamos el mensaje de WhatsApp incluyendo los links de las fotos para que tú los tengas completos
+        links_texto = "\n".join(datos["imagenes"])
+        msg = (
+            f"Hola Capitana Albatros, vengo de la página del Bazar.\n\n"
+            f"👤 *Vendedora:* {datos['vendedor']}\n"
+            f"🆔 *ID de Registro:* {id_b}\n"
+            f"📍 *Punto:* {datos['zona']}\n"
+            f"📂 *Categoría:* {datos['categoria']}\n"
+            f"📝 *Artículos:*\n{datos['articulos']}\n\n"
+            f"📸 *Links de Fotos:*\n{links_texto}\n\n"
+            f"📎 *(Aquí adjunto mi captura de pantalla del pago)*"
+        )
+        msg_encoded = msg.replace(' ', '%20').replace('\n', '%0A')
+        url_wa = f"https://wa.me/528143029578?text={msg_encoded}"
+        
+        if not st.session_state.enviado_ok:
+            if st.button("📲 Click Para Registrar y Preparar Mensaje de WhatsApp", key="btn_disparador_wa"):
+                # Se guarda en la memoria temporal activa de la sesión corriente
+                st.session_state.bloques_db[id_b] = datos
+                st.session_state.enviado_ok = True
+                st.rerun()
         else:
-            st.markdown('<div class="preview-container">', unsafe_allow_html=True)
-            st.warning("⏳ Tu registro está en proceso de revisión. Por favor, realiza el paso final de WhatsApp en la parte de abajo.")
+            st.success("✅ ¡Datos procesados con éxito!")
+            st.markdown(f"""
+                <a class="btn-wa-nativo" href="{url_wa}" target="_blank">
+                    🚀 ¡TODO LISTO! CLIC AQUÍ PARA MANDAR ANUNCIO Y COMPROBANTE POR WHATSAPP
+                </a>
+            """, unsafe_allow_html=True)
+            st.info("Al dar clic arriba se abrirá tu WhatsApp con toda la información armada incluyendo los links de las imágenes. Solo dale enviar y adjunta tu comprobante.")
             
-            st.markdown("### 👀 Detalles de tu Solicitud")
-            col_p1, col_p2 = st.columns([1, 2])
-            with col_p1:
-                st.metric(label="Monto por Validar", value="$25 MXN")
-                st.write(f"🆔 **ID Asignado:** `{id_b}`")
-            with col_p2:
-                st.write(f"👤 **Vendedora:** {datos['vendedor']}")
-                st.write(f"📍 **Punto Seguro:** {datos['zona']}")
-                st.write("**📝 Lista enviada:**")
-                st.markdown(f'<div class="articulos-box-shein">{datos["articulos"]}</div>', unsafe_allow_html=True)
-            
-            if datos["imagenes"]:
-                st.write("**📸 Imágenes cargadas con éxito:**")
-                cols_prev = st.columns(6)
-                for i, img in enumerate(datos["imagenes"]):
-                    with cols_prev[i % 6]:
-                        st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
-                        st.image(img, use_container_width=True)
-                        st.markdown('</div>', unsafe_allow_html=True)
-            
-            st.markdown("---")
-            st.markdown("### 📲 ¡Paso Final Obligatorio!")
-            
-            msg = (
-                f"Hola, vengo de la página del Bazar.\n\n"
-                f"👤 *Vendedora:* {datos['vendedor']}\n"
-                f"🆔 *ID de Registro:* {id_b}\n\n"
-                f"📎 *(Por favor, adjunta aquí la foto de tu comprobante antes de enviar el mensaje)*"
-            )
-            msg_encoded = msg.replace(' ', '%20').replace('\n', '%0A')
-            url_wa = f"https://wa.me/528143029578?text={msg_encoded}"
-            
-            if not st.session_state.enviado_ok:
-                if st.button("📲 Click Para Registrar y Preparar Envío de WhatsApp", key="btn_disparador_wa"):
-                    with st.spinner("Guardando en la nube de forma segura... ✨"):
-                        # Registramos localmente
-                        st.session_state.bloques_db[id_b] = datos
-                        # Forzamos la subida a ImgBB y escritura instantánea en Google Sheets
-                        guardar_en_sheets(id_b, datos)
-                        st.session_state.enviado_ok = True
-                        st.rerun()
-            else:
-                st.success("✅ ¡Datos registrados con éxito en el panel de administración!")
-                st.markdown(f"""
-                    <a class="btn-wa-nativo" href="{url_wa}" target="_blank">
-                        🚀 ¡TODO LISTO! CLIC AQUÍ PARA CONFIRMAR TU PAGO VÍA WHATSAPP
-                    </a>
-                """, unsafe_allow_html=True)
-                st.info("Al dar clic arriba se abrirá el chat. No olvides adjuntar foto del comprobante.")
-                
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
 # 🔐 PESTAÑA 3: PANEL DE CONTROL DE ADMINISTRADORA
 # ==========================================
 with tab_admin:
-    st.subheader("🔐 Consola de Verificación")
+    st.subheader("🔐 Consola de Verificación Local")
     clave_ingresada = st.text_input("Introduce la Contraseña de Administradora:", type="password", key="tab_admin_key")
     
     if clave_ingresada == CONTRASENA_ADMIN:
-        st.success("Acceso Autorizado - Modo Gestor")
-        st.markdown("### 🛠️ Solicitudes del Sistema")
+        st.success("Acceso Autorizado - Modo Catálogo")
+        st.info("💡 Consejo de Capitana Albatros: Para hacer un bloque permanente (que nunca se borre al picar la rueda), copia el bloque de texto que te llega a WhatsApp y pégalo directamente en la sección 'bloques_db' en tu GitHub.")
         
-        if not st.session_state.bloques_db:
-            st.info("No hay bloques registrados actualmente esperando acción en el sistema.")
-        else:
-            for b_id in list(st.session_state.bloques_db.keys()):
-                b_info = st.session_state.bloques_db[b_id]
-                
-                st.markdown(f"""
-                    <div class="admin-box">
-                        <span style="color:#D81159;"><b>ID Solicitud:</b> {b_id}</span><br>
-                        <b>Vendedora:</b> {b_info['vendedor']} | <b>Celular:</b> {b_info['whatsapp']}<br>
-                        <b>Estado Actual:</b> <code>{b_info['estado']}</code>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                if b_info.get('imagenes'):
-                    st.markdown("**📸 Fotos adjuntas por la vendedora:**")
-                    cols_admin_img = st.columns(6)
-                    for idx, img_obj in enumerate(b_info['imagenes']):
-                        with cols_admin_img[idx % 6]:
-                            st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
-                            st.image(img_obj, use_container_width=True)
-                            st.markdown('</div>', unsafe_allow_html=True)
-                
-                if b_info.get("comprobante_link") and isinstance(b_info["comprobante_link"], str) and b_info["comprobante_link"].startswith("http"):
-                    st.markdown(f'<a href="{b_info["comprobante_link"]}" target="_blank" style="color: #E6005C; font-weight: bold;">👁️ Ver Comprobante de Pago en Grande</a>', unsafe_allow_html=True)
-                
-                if "espera" in str(b_info['estado']).lower():
-                    if st.button("🟢 Aceptar Bloque", key=f"tab_acc_{b_id}"):
-                        st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
-                        guardar_en_sheets(b_id, st.session_state.bloques_db[b_id])
-                        st.toast(f"¡Bloque {b_id} activado con éxito!")
-                        st.rerun()
-                
-                nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=b_info['articulos'], key=f"tab_edit_{b_id}")
-                if nuevo_texto != b_info['articulos']:
-                    st.session_state.bloques_db[b_id]['articulos'] = nuevo_texto
-                    guardar_en_sheets(b_id, st.session_state.bloques_db[b_id])
-                
-                if st.button(f"🗑️ Eliminar permanentemente {b_id}", key=f"tab_del_{b_id}"):
-                    if b_id in st.session_state.bloques_db:
-                        del st.session_state.bloques_db[b_id]
-                    try:
-                        df_actual = conn.read(spreadsheet=URL_HOJA_CALCULO, ttl=0).dropna(how="all")
-                        df_actual.columns = [c.strip() for c in df_actual.columns]
-                        df_actual = df_actual[df_actual["id"].astype(str).str.strip() != str(b_id).strip()]
-                        conn.update(spreadsheet=URL_HOJA_CALCULO, data=df_actual)
-                    except:
-                        pass
+        st.markdown("### 🛠️ Solicitudes en Memoria Activa")
+        
+        for b_id in list(st.session_state.bloques_db.keys()):
+            b_info = st.session_state.bloques_db[b_id]
+            
+            st.markdown(f"""
+                <div class="admin-box">
+                    <span style="color:#D81159;"><b>ID Solicitud:</b> {b_id} (Estado: {b_info['estado']})</span><br>
+                    <b>Vendedora:</b> {b_info['vendedor']} | <b>Celular:</b> {b_info['whatsapp']}<br>
+                    <b>Punto:</b> {b_info['zona']}
+                </div>
+            """, unsafe_allow_html=True)
+            
+            if b_info.get('imagenes'):
+                st.markdown("**📸 Enlaces de Fotos Integrados:**")
+                for img_url in b_info['imagenes']:
+                    st.markdown(f"- <a href='{img_url}' target='_blank'>{img_url}</a>", unsafe_allow_html=True)
+            
+            if "espera" in str(b_info['estado']).lower():
+                if st.button("🟢 Activar en Pantalla Temporal", key=f"tab_acc_{b_id}"):
+                    st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
                     st.rerun()
-                st.markdown("---")
+            
+            nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=b_info['articulos'], key=f"tab_edit_{b_id}")
+            if nuevo_texto != b_info['articulos']:
+                st.session_state.bloques_db[b_id]['articulos'] = nuevo_texto
+            
+            if st.button(f"🗑️ Quitar {b_id}", key=f"tab_del_{b_id}"):
+                if b_id in st.session_state.bloques_db:
+                    del st.session_state.bloques_db[b_id]
+                st.rerun()
+            st.markdown("---")
 
 st.markdown('<div class="seccion-quejas">Quejas, sugerencias y aclaraciones, con Capitana Albatros: 8143029578</div>', unsafe_allow_html=True)
