@@ -24,13 +24,27 @@ st.markdown("""
         background: linear-gradient(135deg, #FFE5EC 0%, #FFB3C6 40%, #FF477E 100%);
     }
     
-    /* Contenedores blancos */
+    /* Contenedores blancos generales y tarjetas estilo Shein */
     .stForm, .preview-container, .public-block, .admin-box {
         background-color: rgba(255, 255, 255, 0.98) !important;
-        padding: 25px;
+        padding: 20px;
         border-radius: 15px;
         box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.15);
         margin-bottom: 25px;
+    }
+    
+    /* Tarjeta compacta específica para el diseño de cuadritos */
+    .shein-card {
+        background-color: #FFFFFF !important;
+        border: 2px solid #FFB3C6 !important;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
     }
     
     /* Forzar títulos y etiquetas generales en negro */
@@ -127,26 +141,30 @@ st.markdown("""
         background-color: #20BA56 !important;
     }
     
-    /* Fotos miniatura controladas */
+    /* Fotos miniatura controladas estilo catálogo */
     .mini-foto img {
-        max-height: 140px !important;
+        max-height: 100px !important;
         object-fit: contain !important;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 1px solid #FFB3C6;
     }
     
-    .articulos-box {
+    /* Caja de artículos adaptada a tarjeta pequeña */
+    .articulos-box-shein {
         background-color: #F8F9FA !important;
         color: #1A1A1A !important;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 5px solid #E6005C;
-        font-size: 16px;
+        padding: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #E6005C;
+        font-size: 14px;
         white-space: pre-wrap;
+        margin-bottom: 10px;
+        max-height: 150px;
+        overflow-y: auto;
     }
     
-    .badge-activo {
-        background-color: #D4EDDA; color: #155724; padding: 5px 10px; border-radius: 5px; font-weight: bold;
+    .badge-activo-shein {
+        background-color: #D4EDDA; color: #155724; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block;
     }
     
     /* Botón HTML nativo para apertura forzada en pestaña nueva */
@@ -205,7 +223,7 @@ st.markdown('<div style="text-align:center; font-size:18px; color:white; font-we
 tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel de Control (Solo Admin)"])
 
 # ==========================================
-# PESTAÑA 1: EL ESCAPARATE PÚBLICO
+# PESTAÑA 1: EL ESCAPARATE PÚBLICO (DISEÑO GRID ESTILO SHEIN)
 # ==========================================
 with tab_bazar:
     # ⚠️ LEYENDA DE SEGURIDAD AL PRINCIPIO DE LA PESTAÑA ⚠️
@@ -225,46 +243,62 @@ with tab_bazar:
     if not bloques_activos:
         st.info("No hay tienditas activas en este momento. Las publicaciones aprobadas aparecerán aquí de inmediato.")
     else:
-        for id_b, info_b in bloques_activos.items():
-            # Creación del mensaje automático codificado para WhatsApp
-            texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
-            texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
-            url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
+        # CONVERTIR EN FILAS Y COLUMNAS (3 columnas por fila, como catálogo modular)
+        lista_bloques = list(bloques_activos.items())
+        columnas_por_fila = 3
+        
+        for i in range(0, len(lista_bloques), columnas_por_fila):
+            fila_bloques = lista_bloques[i:i+columnas_por_fila]
+            cols = st.columns(columnas_por_fila)
+            
+            for idx_col, (id_b, info_b) in enumerate(fila_bloques):
+                with cols[idx_col]:
+                    # Creación del mensaje automático codificado para WhatsApp
+                    texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
+                    texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
+                    url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
 
-            st.markdown(f"""
-                <div class="public-block">
-                    <span class="badge-activo">🟢 TIENDA ACTIVA</span>
-                    <h3 style="margin-top:10px; margin-bottom:5px; color:#D81159;">🛍️ Bazar de {info_b['vendedor']}</h3>
-                    <p style="margin: 2px 0; color:#1A1A1A;">📂 <b>Categoría:</b> {info_b['categoria']} | 📅 <b>Publicado:</b> {info_b['fecha']}</p>
-                    <p style="margin: 2px 0; color:#1A1A1A;">📍 <b>Punto Seguro:</b> {info_b['zona']}</p>
-                    <hr style="border-color:#FFB3C6;">
-                    <div class="articulos-box">{info_b['articulos']}</div>
-                    <br>
-            """, unsafe_allow_html=True)
-            
-            if info_b.get('imagenes'):
-                st.markdown("**📸 Fotos del Bazar:**")
-                cols_img = st.columns(6)
-                for idx, img_file in enumerate(info_b['imagenes']):
-                    with cols_img[idx % 6]:
-                        st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
-                        st.image(img_file, use_container_width=True)
-                        st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Se cierra el div del bloque, se inyecta el agradecimiento y después la línea gruesa rosa de 5px
-            st.markdown(f"""
-                    <br>
-                    <a href="{url_wa_vendedor}" target="_blank">
-                        <button style="background-color:#E6005C; color:white; border:none; padding:12px 24px; font-weight:bold; border-radius:8px; cursor:pointer;">
-                            💬 Contactar al Vendedor por vía WhatsApp
-                        </button>
-                    </a>
-                </div>
-                <div style="text-align: center; color: #D81159; font-weight: bold; font-size: 15px; margin-top: 15px; margin-bottom: 15px;">
-                    ✨ ¡Gracias por tu preferencia! ✨
-                </div>
-                <hr style="border: 0; height: 5px; background-color: #E6005C; margin-bottom: 45px; border-radius: 5px;">
-            """, unsafe_allow_html=True)
+                    # Tarjeta de producto individual estilo cuadro compacto
+                    st.markdown(f"""
+                        <div class="shein-card">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="badge-activo-shein">🟢 ACTIVO</span>
+                                    <span style="font-size: 11px; color: #666666;">📅 {info_b['fecha']}</span>
+                                </div>
+                                <h4 style="margin: 0 0 5px 0; color:#D81159; font-size: 18px;">🛍️ Bazar de {info_b['vendedor']}</h4>
+                                <p style="margin: 2px 0; color:#555555; font-size: 12px;">📂 <b>Categoría:</b> {info_b['categoria']}</p>
+                                <p style="margin: 2px 0; color:#555555; font-size: 12px; margin-bottom: 10px;">📍 <b>Punto:</b> {info_b['zona']}</p>
+                                <div class="articulos-box-shein">{info_b['articulos']}</div>
+                            </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Fotos dentro del cuadro (más pequeñas para que no descuadren)
+                    if info_b.get('imagenes'):
+                        st.markdown("<span style='font-size:12px; color:#1A1A1A;'>📸 Fotos:</span>", unsafe_allow_html=True)
+                        cols_img = st.columns(4)
+                        for idx_img, img_file in enumerate(info_b['imagenes'][:4]): # Límite de 4 miniaturas visuales en el cuadro
+                            with cols_img[idx_img % 4]:
+                                st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                                st.image(img_file, use_container_width=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Botón de acción, agradecimiento integrado y la línea divisoria inferior de la tarjeta
+                    st.markdown(f"""
+                            <div style="margin-top: 15px;">
+                                <a href="{url_wa_vendedor}" target="_blank" style="text-decoration: none;">
+                                    <button style="background-color:#E6005C; color:white; border:none; padding:10px 15px; font-weight:bold; border-radius:8px; cursor:pointer; width:100%; font-size:13px;">
+                                        💬 Contactar por WhatsApp
+                                    </button>
+                                </a>
+                                <div style="text-align: center; color: #D81159; font-weight: bold; font-size: 12px; margin-top: 8px; margin-bottom: 8px;">
+                                    ✨ ¡Gracias por tu preferencia! ✨
+                                </div>
+                                <hr style="border: 0; height: 5px; background-color: #E6005C; margin: 0; border-radius: 5px;">
+                            </div>
+                        </div>
+                        <br>
+                    """, unsafe_allow_html=True)
 
 # ==========================================
 # PESTAÑA 2: REGISTRO DE VENDEDORAS
@@ -354,7 +388,7 @@ with tab_anunciarse:
                 st.write(f"👤 **Vendedora:** {datos['vendedor']}")
                 st.write(f"📍 **Punto Seguro:** {datos['zona']}")
                 st.write("**📝 Lista enviada:**")
-                st.markdown(f'<div class="articulos-box">{datos["articulos"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="articulos-box-shein">{datos["articulos"]}</div>', unsafe_allow_html=True)
             
             if datos["imagenes"]:
                 st.write("**📸 Imágenes cargadas con éxito:**")
