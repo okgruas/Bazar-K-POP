@@ -177,16 +177,21 @@ st.markdown("""
         font-weight: normal !important;
     }
 
-    /* Estilo para las advertencias de seguridad dentro del bloque */
-    .advertencia-seguridad {
+    /* Estilo para el contenedor de la advertencia de seguridad superior */
+    .alerta-seguridad-principal {
         background-color: #FFF3CD !important;
         color: #856404 !important;
-        padding: 10px 15px;
-        border-radius: 8px;
-        font-size: 13px !important;
-        border-left: 4px solid #FFC107;
-        margin-top: 15px;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+        border-left: 6px solid #FFC107;
+    }
+    .alerta-seguridad-principal p {
+        color: #856404 !important;
+        font-size: 14px !important;
         font-weight: normal !important;
+        margin: 0 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -202,13 +207,25 @@ tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset"
 # PESTAÑA 1: EL ESCAPARATE PÚBLICO
 # ==========================================
 with tab_bazar:
+    # ⚠️ LEYENDA DE SEGURIDAD AL PRINCIPIO DE LA PESTAÑA ⚠️
+    st.markdown("""
+        <div class="alerta-seguridad-principal">
+            <p>
+                ⚠️ <b>Aviso de Seguridad:</b> Recuerda realizar tus entregas únicamente en <b>lugares públicos y concurridos</b>. 
+                Cada vendedora se hace completamente responsable de sus artículos, precios, acuerdos de entrega y citas correspondientes. 
+                Este espacio funciona únicamente como catálogo digital, por lo que toda transacción y trato es totalmente ajeno a la aplicación.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
     st.subheader("🛒 Clósets y Productos Disponibles")
-    bloques_activos = {k: v for k, v in st.session_state.bloques_db.items() if v.get('estado') == "🟢 ACTIVO"}
+    bloques_activos = {k: v for k, v in st.session_state.bloques_db.items() if v['estado'] == "🟢 ACTIVO"}
     
     if not bloques_activos:
         st.info("No hay tienditas activas en este momento. Las publicaciones aprobadas aparecerán aquí de inmediato.")
     else:
         for id_b, info_b in bloques_activos.items():
+            # Creación del mensaje automático codificado para WhatsApp
             texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
             texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
             url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
@@ -233,14 +250,6 @@ with tab_bazar:
                         st.image(img_file, use_container_width=True)
                         st.markdown('</div>', unsafe_allow_html=True)
             
-            st.markdown("""
-                <div class="advertencia-seguridad">
-                    ⚠️ <b>Aviso de Seguridad:</b> Recuerda realizar tus entregas únicamente en <b>lugares públicos y concurridos</b>. 
-                    Cada vendedora se hace completamente responsable de sus artículos, precios, acuerdos de entrega y citas correspondientes. 
-                    Este espacio funciona únicamente como catálogo digital, por lo que toda transacción y trato es totalmente ajeno a la aplicación.
-                </div>
-            """, unsafe_allow_html=True)
-
             st.markdown(f"""
                     <br>
                     <a href="{url_wa_vendedor}" target="_blank">
@@ -315,13 +324,14 @@ with tab_anunciarse:
                     "estado": "⏳ En espera de verificación",
                     "fecha": datetime.now().strftime("%d/%m/%Y")
                 }
-                st.session_state.enviado_ok = False
+                st.session_state.enviado_ok = False # Reiniciar estado de WhatsApp
 
+    # --- SECCIÓN DE VISTA PREVIA Y GUARDADO BLINDADO ---
     if st.session_state.pre_registro is not None:
         datos = st.session_state.pre_registro
         id_b = datos["id"]
         
-        if id_b in st.session_state.bloques_db and st.session_state.bloques_db[id_b].get('estado') == "🟢 ACTIVO":
+        if id_b in st.session_state.bloques_db and st.session_state.bloques_db[id_b]['estado'] == "🟢 ACTIVO":
             st.session_state.pre_registro = None
             st.session_state.enviado_ok = False
             st.rerun()
@@ -332,7 +342,7 @@ with tab_anunciarse:
             st.markdown("### 👀 Detalles de tu Solicitud")
             col_p1, col_p2 = st.columns([1, 2])
             with col_p1:
-                st.metric(label="Monto por Validar", value="$25 MXN")
+                st.metric(label="Monto por Validar", value="$15 MXN")
                 st.write(f"🆔 **ID Asignado:** `{id_b}`")
             with col_p2:
                 st.write(f"👤 **Vendedora:** {datos['vendedor']}")
@@ -359,8 +369,9 @@ with tab_anunciarse:
                 f"📎 *(Por favor, adjunta aquí la foto de tu comprobante antes de enviar el mensaje)*"
             )
             msg_encoded = msg.replace(' ', '%20').replace('\n', '%0A')
-            url_wa = f"https://wa.me/528143029578?text={msg_encoded}"
+            url_wa = f"https://wa.me/{8143029578}?text={msg_encoded}"
             
+            # PASO A: El botón de Streamlit guarda en base de datos local primero para que NO se pierda
             if not st.session_state.enviado_ok:
                 if st.button("📲 Click Para Registrar y Preparar Envío de WhatsApp", key="btn_disparador_wa"):
                     st.session_state.bloques_db[id_b] = {
@@ -376,6 +387,7 @@ with tab_anunciarse:
                     st.session_state.enviado_ok = True
                     st.rerun()
             else:
+                # PASO B: Se habilita el botón nativo HTML con target="_blank" para abrir en otra pestaña limpia
                 st.success("✅ ¡Datos registrados con éxito en el panel de administración!")
                 st.markdown(f"""
                     <a class="btn-wa-nativo" href="{url_wa}" target="_blank">
@@ -400,20 +412,14 @@ with tab_admin:
         if not st.session_state.bloques_db:
             st.info("No hay bloques registrados actualmente esperando acción en el sistema.")
         else:
-            # Creamos una lista limpia de llaves para evitar errores de mutación en renderizado
-            lista_ids = list(st.session_state.bloques_db.keys())
-            for b_id in lista_ids:
-                # Control preventivo si el ID desapareció inesperadamente de la memoria
-                if b_id not in st.session_state.bloques_db:
-                    continue
-                    
+            for b_id in list(st.session_state.bloques_db.keys()):
                 b_info = st.session_state.bloques_db[b_id]
                 
                 st.markdown(f"""
                     <div class="admin-box">
                         <span style="color:#D81159;"><b>ID Solicitud:</b> {b_id}</span><br>
-                        <b>Vendedora:</b> {b_info.get('vendedor', 'Sin nombre')} | <b>Celular:</b> {b_info.get('whatsapp', '')}<br>
-                        <b>Estado Actual:</b> <code>{b_info.get('estado', 'Desconocido')}</code>
+                        <b>Vendedora:</b> {b_info['vendedor']} | <b>Celular:</b> {b_info['whatsapp']}<br>
+                        <b>Estado Actual:</b> <code>{b_info['estado']}</code>
                     </div>
                 """, unsafe_allow_html=True)
                 
@@ -426,22 +432,18 @@ with tab_admin:
                             st.image(img_obj, use_container_width=True)
                             st.markdown('</div>', unsafe_allow_html=True)
                 
-                if b_info.get('estado') == "⏳ En espera de verificación":
+                if b_info['estado'] == "⏳ En espera de verificación":
                     if st.button("🟢 Aceptar Bloque", key=f"tab_acc_{b_id}"):
-                        if b_id in st.session_state.bloques_db:
-                            st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
-                            st.toast(f"¡Bloque {b_id} activado con éxito!")
+                        st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
+                        st.toast(f"¡Bloque {b_id} activado con éxito!")
                         st.rerun()
                 
-                # Prevenir errores asignando un valor por defecto si artículos no existe
-                txt_actual = b_info.get('articulos', '')
-                nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=txt_actual, key=f"tab_edit_{b_id}")
-                if nuevo_texto != txt_actual and b_id in st.session_state.bloques_db:
+                nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=b_info['articulos'], key=f"tab_edit_{b_id}")
+                if nuevo_texto != b_info['articulos']:
                     st.session_state.bloques_db[b_id]['articulos'] = nuevo_texto
                 
                 if st.button(f"🗑️ Eliminar permanentemente {b_id}", key=f"tab_del_{b_id}"):
-                    if b_id in st.session_state.bloques_db:
-                        del st.session_state.bloques_db[b_id]
+                    del st.session_state.bloques_db[b_id]
                     st.rerun()
                 st.markdown("---")
 
