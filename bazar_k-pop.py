@@ -54,7 +54,7 @@ def obtener_base64_de_imagen(nombre_archivo):
 img_portada_base64 = obtener_base64_de_imagen("portada1.png")
 img_perfil_base64 = obtener_base64_de_imagen("portada2.png")
 
-# --- 4. ESTILOS CSS CON EFECTO GLASSMORPHISM ROSA/MORADO DEGRADADO ---
+# --- 4. ESTILOS CSS CON EFECTO GLASSMORPHISM Y TITULOS CONTORNADOS ---
 st.markdown("""
     <style>
     /* Fondo general de la App */
@@ -63,12 +63,11 @@ st.markdown("""
     }
     
     /* ========================================================
-       ✨ CONTENEDOR DE PERFIL ESTILO FACEBOOK (GLASSMORPHISM MEJORADO)
+       ✨ CONTENEDOR DE PERFIL ESTILO FACEBOOK (GLASSMORPHISM)
        ======================================================== */
     .fb-header-container {
         position: relative;
         width: 100%;
-        /* Degradado Glassmorphic translúcido de Rosa a Morado con opacidad del 35% */
         background: linear-gradient(135deg, rgba(255, 179, 198, 0.35), rgba(187, 134, 252, 0.35)) !important;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
@@ -98,7 +97,7 @@ st.markdown("""
     .fb-profile-row {
         display: flex;
         align-items: center;
-        margin-top: -45px; /* Sube lo justo para la foto de perfil */
+        margin-top: -45px;
         padding: 0 40px 15px 40px;
         position: relative;
         z-index: 5;
@@ -121,37 +120,39 @@ st.markdown("""
         object-fit: cover;
     }
     
-    /* Textos alineados abajo para que NUNCA tapen la portada en Computadora */
+    /* Textos alineados abajo para evitar solapamientos */
     .fb-profile-info {
         margin-left: 25px;
-        margin-top: 50px; /* Empuja los textos hacia abajo fuera de la foto de portada */
+        margin-top: 50px;
     }
     
-    /* ✨ TÍTULO CON DEGRADADO ROSA Y MORADO ✨ */
+    /* ✨ TÍTULO CON DEGRADADO Y ORILLA NEGRA (TEXT STROKE) ✨ */
     .gradient-title {
         font-size: 34px !important;
         font-weight: 900 !important;
         background: linear-gradient(45deg, #FF1493, #9400D3) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
+        -webkit-text-stroke: 1.5px #1A1A1A; /* Orilla negra definida */
         display: inline-block !important;
         margin: 0 !important;
-        filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
+        filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.15));
     }
     
-    /* 🔮 SUBTÍTULO CON EL MISMO DEGRADADO ROSA Y MORADO 🔮 */
+    /* 🔮 SUBTÍTULO CON DEGRADADO Y ORILLA NEGRA 🔮 */
     .gradient-subtitle {
         font-size: 17px !important;
         font-weight: 800 !important;
         background: linear-gradient(45deg, #FF1493, #9400D3) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
+        -webkit-text-stroke: 1.2px #1A1A1A; /* Orilla negra un poco más delgada para subtítulo */
         display: inline-block !important;
         margin: 6px 0 0 0 !important;
-        filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
+        filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.15));
     }
     
-    /* Ajustes adaptables perfectos para Celulares */
+    /* Ajustes adaptables para Celulares */
     @media (max-width: 768px) {
         .fb-cover-wrapper { height: 150px; }
         .fb-profile-row {
@@ -163,8 +164,8 @@ st.markdown("""
         }
         .fb-profile-avatar { width: 110px; height: 110px; border-width: 4px; }
         .fb-profile-info { margin-left: 0; margin-top: 15px; }
-        .gradient-title { font-size: 24px !important; }
-        .gradient-subtitle { font-size: 14px !important; }
+        .gradient-title { font-size: 24px !important; -webkit-text-stroke: 1px #1A1A1A; }
+        .gradient-subtitle { font-size: 14px !important; -webkit-text-stroke: 0.8px #1A1A1A; }
     }
     
     /* ========================================================
@@ -301,15 +302,26 @@ st.markdown("""
         font-weight: normal !important;
     }
 
+    /* 🧠 CAJA DE AVISO DE SEGURIDAD REESTILIZADA (TENUE Y ARMÓNICA) 🧠 */
     .alerta-seguridad-principal {
-        background-color: #FFF3CD !important;
-        color: #856404 !important;
-        padding: 20px;
-        border-radius: 12px;
-        border-left: 6px solid #FFC107;
+        background-color: rgba(255, 240, 245, 0.6) !important; /* Rosa pastel muy tenue translúcido */
+        backdrop-filter: blur(4px);
+        color: #A30046 !important; /* Texto en tono magenta oscuro para contraste legible */
+        padding: 18px;
+        border-radius: 14px;
+        border-left: 5px solid #FF477E; /* Detalle lateral rosa encendido */
+        border-top: 1px solid rgba(255, 255, 255, 0.4);
+        border-right: 1px solid rgba(255, 255, 255, 0.4);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.4);
         margin-bottom: 25px;
+        box-shadow: 0px 4px 12px rgba(216, 17, 89, 0.05);
     }
-    .alerta-seguridad-principal p { color: #856404 !important; font-size: 14px !important; font-weight: normal !important; margin: 0 !important; }
+    .alerta-seguridad-principal p { 
+        color: #A30046 !important; 
+        font-size: 14px !important; 
+        font-weight: 500 !important; 
+        margin: 0 !important; 
+    }
 
     @media (max-width: 768px) {
         div[data-testid="stHorizontalBlock"] { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 10px !important; }
@@ -324,7 +336,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. ENRENDERIZADO DEL ENCABEZADO MEJORADO CORREGIDO ---
+# --- 5. RENDERIZADO DEL ENCABEZADO ---
 fondo_portada_fallback = img_portada_base64 if img_portada_base64 else "linear-gradient(90deg, #FFB3C6, #FF8FAB)"
 fondo_perfil_fallback = img_perfil_base64 if img_perfil_base64 else "linear-gradient(135deg, #FF477E, #FF8FAB)"
 
