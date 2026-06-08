@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-import shelve  # <-- Biblioteca nativa de Python para persistencia real sin configurar servidores
+import shelve
 
 # Configuración de la página
 st.set_page_config(
@@ -14,8 +14,6 @@ TELEFONO_ADMIN_WHATSAPP = "528143029578"
 CONTRASENA_ADMIN = "bazar123"
 
 # --- BASE DE DATOS PERSISTENTE BLINDADA ---
-# Guardamos los datos en un archivo local llamado 'bazar_data'. 
-# Si el archivo no existe, se crea solo; si existe, recupera todo al recargar.
 def cargar_datos():
     with shelve.open("bazar_data") as db:
         return dict(db.get("bloques_db", {}))
@@ -24,11 +22,10 @@ def guardar_datos(datos):
     with shelve.open("bazar_data") as db:
         db["bloques_db"] = datos
 
-# Inicializar st.session_state consumiendo directamente de la base de datos permanente
 if "bloques_db" not in st.session_state:
     st.session_state.bloques_db = cargar_datos()
 
-# --- ESTILOS CSS REFORZADOS ---
+# --- ESTILOS CSS REFORZADOS EN DISEÑO MÓVIL ---
 st.markdown("""
     <style>
     /* Fondo general */
@@ -71,7 +68,7 @@ st.markdown("""
         color: #1A1A1A !important;
         border: 2px solid #FF477E !important;
         -webkit-text-fill-color: #1A1A1A !important;
-        caret-color: #1A1A1A !important; /* Fuerza la barrita parpadeante a color negro */
+        caret-color: #1A1A1A !important;
     }
     
     /* Marcador de posición (placeholder) tenue */
@@ -155,7 +152,7 @@ st.markdown("""
     
     /* Fotos miniatura controladas estilo catálogo */
     .mini-foto img {
-        max-height: 100px !important;
+        max-height: 90px !important; /* Ligeramente más compacto para pantallas pequeñas */
         object-fit: contain !important;
         border-radius: 6px;
         border: 1px solid #FFB3C6;
@@ -212,7 +209,7 @@ st.markdown("""
     .alerta-seguridad-principal {
         background-color: #FFF3CD !important;
         color: #856404 !important;
-        padding: 20px;
+        padding: 15px;
         border-radius: 12px;
         box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
         margin-bottom: 25px;
@@ -220,7 +217,7 @@ st.markdown("""
     }
     .alerta-seguridad-principal p {
         color: #856404 !important;
-        font-size: 14px !important;
+        font-size: 13px !important;
         font-weight: normal !important;
         margin: 0 !important;
     }
@@ -228,14 +225,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- ENCABEZADO ---
-st.markdown('<div style="text-align:center; font-size:42px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
-st.markdown('<div style="text-align:center; font-size:18px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center; font-size:36px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center; font-size:16px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
 
 # --- PESTAÑAS PRINCIPALES ---
 tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel de Control (Solo Admin)"])
 
 # ==========================================
-# PESTAÑA 1: EL ESCAPARATE PÚBLICO (DISEÑO GRID ESTILO SHEIN)
+# PESTAÑA 1: EL ESCAPARATE PÚBLICO (DISEÑO INTELIGENTE AUTO-RESPONSIVO)
 # ==========================================
 with tab_bazar:
     st.markdown("""
@@ -255,56 +252,52 @@ with tab_bazar:
         st.info("No hay tienditas activas en este momento. Las publicaciones aprobadas aparecerán aquí de inmediato.")
     else:
         lista_bloques = list(bloques_activos.items())
-        columnas_por_fila = 3
         
-        for i in range(0, len(lista_bloques), columnas_por_fila):
-            fila_bloques = lista_bloques[i:i+columnas_por_fila]
-            cols = st.columns(columnas_por_fila)
-            
-            for idx_col, (id_b, info_b) in enumerate(fila_bloques):
-                with cols[idx_col]:
-                    texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
-                    texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
-                    url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
+        # 💻 AJUSTE RESPONSIVO: En pantallas grandes usa 3 columnas, en celulares las apila de 1 en 1 de forma limpia
+        for id_b, info_b in lista_bloques:
+            texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
+            texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
+            url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
 
-                    st.markdown(f"""
-                        <div class="shein-card">
-                            <div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span class="badge-activo-shein">🟢 ACTIVO</span>
-                                    <span style="font-size: 11px; color: #666666;">📅 {info_b['fecha']}</span>
-                                </div>
-                                <h4 style="margin: 0 0 5px 0; color:#D81159; font-size: 18px;">🛍️ Bazar de {info_b['vendedor']}</h4>
-                                <p style="margin: 2px 0; color:#555555; font-size: 12px;">📂 <b>Categoría:</b> {info_b['categoria']}</p>
-                                <p style="margin: 2px 0; color:#555555; font-size: 12px; margin-bottom: 10px;">📍 <b>Punto:</b> {info_b['zona']}</p>
-                                <div class="articulos-box-shein">{info_b['articulos']}</div>
-                            </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if info_b.get('imagenes'):
-                        st.markdown("<span style='font-size:12px; color:#1A1A1A;'>📸 Fotos:</span>", unsafe_allow_html=True)
-                        cols_img = st.columns(4)
-                        for idx_img, img_file in enumerate(info_b['imagenes'][:4]):
-                            with cols_img[idx_img % 4]:
-                                st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
-                                st.image(img_file, use_container_width=True)
-                                st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                            <div style="margin-top: 15px;">
-                                <a href="{url_wa_vendedor}" target="_blank" style="text-decoration: none;">
-                                    <button style="background-color:#E6005C; color:white; border:none; padding:10px 15px; font-weight:bold; border-radius:8px; cursor:pointer; width:100%; font-size:13px;">
-                                        💬 Contactar por WhatsApp
-                                    </button>
-                                </a>
-                                <div style="text-align: center; color: #D81159; font-weight: bold; font-size: 12px; margin-top: 8px; margin-bottom: 8px;">
-                                    ✨ ¡Gracias por tu preferencia! ✨
-                                </div>
-                                <hr style="border: 0; height: 5px; background-color: #E6005C; margin: 0; border-radius: 5px;">
-                            </div>
+            # Contenedor principal de la tarjeta
+            st.markdown(f"""
+                <div class="shein-card">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span class="badge-activo-shein">🟢 ACTIVO</span>
+                            <span style="font-size: 11px; color: #666666;">📅 {info_b['fecha']}</span>
                         </div>
-                        <br>
-                    """, unsafe_allow_html=True)
+                        <h4 style="margin: 0 0 5px 0; color:#D81159; font-size: 18px;">🛍️ Bazar de {info_b['vendedor']}</h4>
+                        <p style="margin: 2px 0; color:#555555; font-size: 12px;">📂 <b>Categoría:</b> {info_b['categoria']}</p>
+                        <p style="margin: 2px 0; color:#555555; font-size: 12px; margin-bottom: 10px;">📍 <b>Punto:</b> {info_b['zona']}</p>
+                        <div class="articulos-box-shein">{info_b['articulos']}</div>
+                    </div>
+            """, unsafe_allow_html=True)
+            
+            if info_b.get('imagenes'):
+                st.markdown("<span style='font-size:12px; color:#1A1A1A;'>📸 Fotos:</span>", unsafe_allow_html=True)
+                cols_img = st.columns(4)
+                for idx_img, img_file in enumerate(info_b['imagenes'][:4]):
+                    with cols_img[idx_img % 4]:
+                        st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                        st.image(img_file, use_container_width=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown(f"""
+                    <div style="margin-top: 15px;">
+                        <a href="{url_wa_vendedor}" target="_blank" style="text-decoration: none;">
+                            <button style="background-color:#E6005C; color:white; border:none; padding:10px 15px; font-weight:bold; border-radius:8px; cursor:pointer; width:100%; font-size:13px;">
+                                💬 Contactar por WhatsApp
+                            </button>
+                        </a>
+                        <div style="text-align: center; color: #D81159; font-weight: bold; font-size: 12px; margin-top: 8px; margin-bottom: 8px;">
+                            ✨ ¡Gracias por tu preferencia! ✨
+                        </div>
+                        <hr style="border: 0; height: 5px; background-color: #E6005C; margin: 0; border-radius: 5px;">
+                    </div>
+                </div>
+                <br>
+            """, unsafe_allow_html=True)
 
 # ==========================================
 # PESTAÑA 2: REGISTRO DE VENDEDORAS
@@ -428,7 +421,6 @@ with tab_anunciarse:
                         "estado": "⏳ En espera de verificación",
                         "fecha": datos["fecha"]
                     }
-                    # 💾 GUARDADO FÍSICO INMEDIATO
                     guardar_datos(st.session_state.bloques_db)
                     st.session_state.enviado_ok = True
                     st.rerun()
@@ -480,7 +472,6 @@ with tab_admin:
                 if b_info['estado'] == "⏳ En espera de verificación":
                     if st.button("🟢 Aceptar Bloque", key=f"tab_acc_{b_id}"):
                         st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
-                        # 💾 GUARDADO FÍSICO AL MODIFICAR ESTADO
                         guardar_datos(st.session_state.bloques_db)
                         st.toast(f"¡Bloque {b_id} activado con éxito!")
                         st.rerun()
@@ -488,12 +479,10 @@ with tab_admin:
                 nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=b_info['articulos'], key=f"tab_edit_{b_id}")
                 if nuevo_texto != b_info['articulos']:
                     st.session_state.bloques_db[b_id]['articulos'] = nuevo_texto
-                    # 💾 GUARDADO FÍSICO AL EDITAR TEXTO
                     guardar_datos(st.session_state.bloques_db)
                 
                 if st.button(f"🗑️ Eliminar permanentemente {b_id}", key=f"tab_del_{b_id}"):
                     del st.session_state.bloques_db[b_id]
-                    # 💾 GUARDADO FÍSICO AL ELIMINAR EL REGISTRO
                     guardar_datos(st.session_state.bloques_db)
                     st.rerun()
                 st.markdown("---")
