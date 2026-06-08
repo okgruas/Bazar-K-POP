@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-import shelve  # <-- Guardado físico real para que no se borre al dormirse la app
+import shelve  # Base de datos física para que no se borre al dormirse la app
 
 # Configuración de la página
 st.set_page_config(
@@ -11,9 +11,9 @@ st.set_page_config(
 
 # ⚠️ CONFIGURACIÓN DE ADMINISTRADOR ⚠️
 TELEFONO_ADMIN_WHATSAPP = "528143029578"
-CONTRASENA_ADMIN = "bazar123"
+CONTRASENA_ADMIN = "bazar123"  # Puedes cambiarla aquí cuando quieras sin perder datos
 
-# --- PERSISTENCIA REAL COMPLETA ---
+# --- PERSISTENCIA REAL EN DISCO ---
 def cargar_datos_disco():
     with shelve.open("bazar_permanente_db") as db:
         return dict(db.get("bloques_db", {}))
@@ -248,9 +248,17 @@ st.markdown("""
             font-size: 11px !important;
             max-height: 90px !important;
         }
-        .mini-foto img {
-            max-height: 50px !important;
+        
+        /* Control estricto para que las fotos NO se vean gigantes en el celular */
+        div[data-testid="column"] div[data-testid="column"] {
+            flex: 1 1 20% !important; /* Fuerza a las fotos a ponerse en fila horizontal de 4 */
+            min-width: 20% !important;
         }
+        .mini-foto img {
+            max-height: 45px !important; /* Fotos mucho más pequeñas tipo miniatura */
+            object-fit: cover !important; /* Evita que se deformen */
+        }
+        
         .shein-card button {
             font-size: 11px !important;
             padding: 6px 4px !important;
@@ -263,8 +271,8 @@ st.markdown("""
 st.markdown('<div style="text-align:center; font-size:42px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
 st.markdown('<div style="text-align:center; font-size:18px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
 
-# --- PESTAÑAS PRINCIPALES ---
-tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel de Control (Solo Admin)"])
+# --- PESTAÑAS PRINCIPALES (Pestaña de Admin cambiada solo a "🔐") ---
+tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐"])
 
 # ==========================================
 # PESTAÑA 1: EL ESCAPARATE PÚBLICO
@@ -466,7 +474,6 @@ with tab_anunciarse:
                         "estado": "⏳ En espera de verificación",
                         "fecha": datos["fecha"]
                     }
-                    # 💾 Guarda físicamente en el disco al dar click
                     guardar_datos_disco(st.session_state.bloques_db)
                     st.session_state.enviado_ok = True
                     st.rerun()
@@ -518,7 +525,6 @@ with tab_admin:
                 if b_info['estado'] == "⏳ En espera de verificación":
                     if st.button("🟢 Aceptar Bloque", key=f"tab_acc_{b_id}"):
                         st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
-                        # 💾 Guarda en disco físico tras la aprobación
                         guardar_datos_disco(st.session_state.bloques_db)
                         st.toast(f"¡Bloque {b_id} activado con éxito!")
                         st.rerun()
@@ -526,12 +532,10 @@ with tab_admin:
                 nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=b_info['articulos'], key=f"tab_edit_{b_id}")
                 if nuevo_texto != b_info['articulos']:
                     st.session_state.bloques_db[b_id]['articulos'] = nuevo_texto
-                    # 💾 Guarda en disco físico al editar
                     guardar_datos_disco(st.session_state.bloques_db)
                 
                 if st.button(f"🗑️ Eliminar permanentemente {b_id}", key=f"tab_del_{b_id}"):
                     del st.session_state.bloques_db[b_id]
-                    # 💾 Guarda en disco físico tras eliminar
                     guardar_datos_disco(st.session_state.bloques_db)
                     st.rerun()
                 st.markdown("---")
