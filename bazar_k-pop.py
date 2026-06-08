@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-import shelve
+import shelve  # <-- Guardado físico real para que no se borre al dormirse la app
 
 # Configuración de la página
 st.set_page_config(
@@ -13,19 +13,20 @@ st.set_page_config(
 TELEFONO_ADMIN_WHATSAPP = "528143029578"
 CONTRASENA_ADMIN = "bazar123"
 
-# --- BASE DE DATOS PERSISTENTE BLINDADA ---
-def cargar_datos():
-    with shelve.open("bazar_data") as db:
+# --- PERSISTENCIA REAL COMPLETA ---
+def cargar_datos_disco():
+    with shelve.open("bazar_permanente_db") as db:
         return dict(db.get("bloques_db", {}))
 
-def guardar_datos(datos):
-    with shelve.open("bazar_data") as db:
+def guardar_datos_disco(datos):
+    with shelve.open("bazar_permanente_db") as db:
         db["bloques_db"] = datos
 
+# Inicializar st.session_state leyendo directamente del disco permanente
 if "bloques_db" not in st.session_state:
-    st.session_state.bloques_db = cargar_datos()
+    st.session_state.bloques_db = cargar_datos_disco()
 
-# --- ESTILOS CSS REFORZADOS (ESTILO SHEIN MULTI-COLUMNA RESPONSIVO) ---
+# --- ESTILOS CSS ORIGINALES CON MINI-AJUSTE PARA CELULARES ---
 st.markdown("""
     <style>
     /* Fondo general */
@@ -33,8 +34,8 @@ st.markdown("""
         background: linear-gradient(135deg, #FFE5EC 0%, #FFB3C6 40%, #FF477E 100%);
     }
     
-    /* Contenedores blancos generales */
-    .stForm, .preview-container, .admin-box {
+    /* Contenedores blancos generales y tarjetas estilo Shein */
+    .stForm, .preview-container, .public-block, .admin-box {
         background-color: rgba(255, 255, 255, 0.98) !important;
         padding: 20px;
         border-radius: 15px;
@@ -42,26 +43,18 @@ st.markdown("""
         margin-bottom: 25px;
     }
     
-    /* REJILLA RESPONSIVA TIPO SHEIN (Muestra cuadritos alineados) */
-    .bazar-grid-shein {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 15px;
-        width: 100%;
-        margin-top: 15px;
-    }
-    
-    /* TARJETA COMPACTA ESTILO CUADRITO DE CATÁLOGO */
-    .shein-card-cuadrito {
+    /* Tarjeta compacta específica para el diseño de cuadritos */
+    .shein-card {
         background-color: #FFFFFF !important;
         border: 2px solid #FFB3C6 !important;
         border-radius: 12px;
-        padding: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        min-height: 400px; /* Asegura un tamaño uniforme en la cuadrícula */
+        height: 100%;
     }
     
     /* Forzar títulos y etiquetas generales en negro */
@@ -138,39 +131,71 @@ st.markdown("""
         -webkit-text-fill-color: #FFFFFF !important;
     }
 
-    /* Caja de artículos adaptada a tarjeta pequeña tipo catálogo */
+    /* BOTÓN DE ACCIÓN (Verde, grande, sin cuadro negro de fondo) */
+    div.stButton > button {
+        background-color: #25D366 !important;
+        color: #1A1A1A !important;
+        border: 2px solid #FFFFFF !important;
+        border-radius: 12px !important;
+        padding: 16px 32px !important;
+        width: 100% !important;
+        box-shadow: 0px 6px 18px rgba(37, 211, 102, 0.4) !important;
+    }
+    div.stButton > button * {
+        color: #1A1A1A !important;
+        font-size: 19px !important;
+        font-weight: 900 !important;
+        -webkit-text-fill-color: #1A1A1A !important;
+    }
+    div.stButton > button:hover {
+        background-color: #20BA56 !important;
+    }
+    
+    /* Fotos miniatura controladas estilo catálogo */
+    .mini-foto img {
+        max-height: 100px !important;
+        object-fit: contain !important;
+        border-radius: 6px;
+        border: 1px solid #FFB3C6;
+    }
+    
+    /* Caja de artículos adaptada a tarjeta pequeña */
     .articulos-box-shein {
         background-color: #F8F9FA !important;
         color: #1A1A1A !important;
-        padding: 8px;
+        padding: 10px;
         border-radius: 6px;
         border-left: 4px solid #E6005C;
-        font-size: 13px;
+        font-size: 14px;
         white-space: pre-wrap;
-        margin-bottom: 8px;
-        max-height: 110px;
+        margin-bottom: 10px;
+        max-height: 150px;
         overflow-y: auto;
     }
     
     .badge-activo-shein {
-        background-color: #D4EDDA; color: #155724; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;
+        background-color: #D4EDDA; color: #155724; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block;
     }
     
-    /* Botones WA compactos dentro del cuadrito */
-    .btn-wa-cuadrito {
+    /* Botón HTML nativo para apertura forzada en pestaña nueva */
+    .btn-wa-nativo {
         display: block;
         width: 100%;
         background-color: #25D366 !important;
         color: #1A1A1A !important;
         text-align: center;
-        padding: 10px 5px;
-        border-radius: 8px;
-        font-size: 13px;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 19px;
         font-weight: 900;
         text-decoration: none;
-        border: 1px solid #FFFFFF;
-        box-shadow: 0px 4px 10px rgba(37, 211, 102, 0.3);
-        margin-top: 5px;
+        border: 2px solid #FFFFFF;
+        box-shadow: 0px 6px 18px rgba(37, 211, 102, 0.4);
+        margin-top: 10px;
+    }
+    .btn-wa-nativo:hover {
+        background-color: #20BA56 !important;
+        color: #1A1A1A !important;
     }
 
     .seccion-quejas {
@@ -181,10 +206,11 @@ st.markdown("""
         font-weight: normal !important;
     }
 
+    /* Estilo para el contenedor de la advertencia de seguridad superior */
     .alerta-seguridad-principal {
         background-color: #FFF3CD !important;
         color: #856404 !important;
-        padding: 15px;
+        padding: 20px;
         border-radius: 12px;
         box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
         margin-bottom: 25px;
@@ -192,39 +218,56 @@ st.markdown("""
     }
     .alerta-seguridad-principal p {
         color: #856404 !important;
-        font-size: 13px !important;
+        font-size: 14px !important;
         font-weight: normal !important;
         margin: 0 !important;
     }
 
-    /* Contenedor específico para miniatura horizontal de fotos dentro de la card */
-    .contenedor-fotos-scroll {
-        display: flex;
-        gap: 5px;
-        overflow-x: auto;
-        padding-bottom: 5px;
-        margin-top: 5px;
-    }
-    .contenedor-fotos-scroll img {
-        width: 60px !important;
-        height: 60px !important;
-        object-fit: cover !important;
-        border-radius: 4px;
-        border: 1px solid #FFB3C6;
-        flex-shrink: 0;
+    /* 📱 FILTRO DE INYECCIÓN DE PANTALLA PARA MÓVILES (ESTILO SHEIN PEQUEÑO) 📱 */
+    @media (max-width: 768px) {
+        /* Fuerza a que las columnas de Streamlit no se hagan del 100% y respeten los cuadritos juntos */
+        div[data-testid="stHorizontalBlock"] {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+        }
+        div[data-testid="column"] {
+            flex: 1 1 45% !important; /* Coloca exactamente 2 cuadritos por fila en el cel */
+            min-width: 45% !important;
+        }
+        /* Achica la tarjeta para vista miniatura de catálogo */
+        .shein-card {
+            padding: 8px !important;
+            margin-bottom: 10px !important;
+        }
+        .shein-card h4 {
+            font-size: 13px !important;
+        }
+        .shein-card p, .articulos-box-shein {
+            font-size: 11px !important;
+            max-height: 90px !important;
+        }
+        .mini-foto img {
+            max-height: 50px !important;
+        }
+        .shein-card button {
+            font-size: 11px !important;
+            padding: 6px 4px !important;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
 
 # --- ENCABEZADO ---
-st.markdown('<div style="text-align:center; font-size:36px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
-st.markdown('<div style="text-align:center; font-size:16px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center; font-size:42px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center; font-size:18px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
 
 # --- PESTAÑAS PRINCIPALES ---
 tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel de Control (Solo Admin)"])
 
 # ==========================================
-# PESTAÑA 1: EL ESCAPARATE PÚBLICO (CUADRÍCULA ROTATIVA TIPO SHEIN)
+# PESTAÑA 1: EL ESCAPARATE PÚBLICO
 # ==========================================
 with tab_bazar:
     st.markdown("""
@@ -232,13 +275,12 @@ with tab_bazar:
             <p>
                 ⚠️ <b>Aviso de Seguridad:</b> Recuerda realizar tus entregas únicamente en <b>lugares públicos y concurridos</b>. 
                 Cada vendedora se hace completamente responsable de sus artículos, precios, acuerdos de entrega y citas correspondientes. 
-                Este espacio funciona únicamente como catálogo digital.
+                Este espacio funciona únicamente como catálogo digital, por lo que toda transacción y trato es totalmente ajeno a la aplicación.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
     st.subheader("🛒 Clósets y Productos Disponibles")
-    
     bloques_activos = {k: v for k, v in st.session_state.bloques_db.items() if v['estado'] == "🟢 ACTIVO"}
     
     if not bloques_activos:
@@ -246,76 +288,61 @@ with tab_bazar:
     else:
         lista_bloques = list(bloques_activos.items())
         
-        # 🔄 ALGORITMO DE ROTACIÓN HORARIA EQUITATIVA 🔄
-        # Usamos la hora actual (0-23) para calcular un desplazamiento dinámico en la lista
+        # 🔄 ALGORITMO DE ROTACIÓN HORARIA ORIGINAL 🔄
         hora_actual = datetime.now().hour
         desplazamiento = hora_actual % len(lista_bloques)
-        # Reordenamos la lista moviendo los elementos según la hora actual
         lista_rotada = lista_bloques[desplazamiento:] + lista_bloques[:desplazamiento]
         
-        # Indicador discreto para el administrador de que la rotación está en marcha
-        st.markdown(f"<span style='font-size:11px; color: rgba(255,255,255,0.7); font-weight:normal;'>🔄 Catálogo rotativo activo (Siguiente rotación automática en la próxima hora completa).</span>", unsafe_allow_html=True)
+        columnas_por_fila = 3
         
-        # Abrimos el contenedor de rejilla estilo Shein
-        html_grid = '<div class="bazar-grid-shein">'
-        
-        # Recorremos los bloques en su orden rotado de esta hora
-        for id_b, info_b in lista_rotada:
-            texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
-            texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
-            url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
+        for i in range(0, len(lista_rotada), columnas_por_fila):
+            fila_bloques = lista_rotada[i:i+columnas_por_fila]
+            cols = st.columns(columnas_por_fila)
             
-            # Construcción de la tarjeta individual (Cuadrito)
-            html_card = f"""
-                <div class="shein-card-cuadrito">
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <span class="badge-activo-shein">🟢 ACTIVO</span>
-                            <span style="font-size: 10px; color: #666666; font-weight:normal;">📅 {info_b['fecha']}</span>
+            for idx_col, (id_b, info_b) in enumerate(fila_bloques):
+                with cols[idx_col]:
+                    texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
+                    texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
+                    url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
+
+                    st.markdown(f"""
+                        <div class="shein-card">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="badge-activo-shein">🟢 ACTIVO</span>
+                                    <span style="font-size: 11px; color: #666666;">📅 {info_b['fecha']}</span>
+                                </div>
+                                <h4 style="margin: 0 0 5px 0; color:#D81159; font-size: 18px;">🛍️ Bazar de {info_b['vendedor']}</h4>
+                                <p style="margin: 2px 0; color:#555555; font-size: 12px;">📂 <b>Categoría:</b> {info_b['categoria']}</p>
+                                <p style="margin: 2px 0; color:#555555; font-size: 12px; margin-bottom: 10px;">📍 <b>Punto:</b> {info_b['zona']}</p>
+                                <div class="articulos-box-shein">{info_b['articulos']}</div>
+                            </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if info_b.get('imagenes'):
+                        st.markdown("<span style='font-size:12px; color:#1A1A1A;'>📸 Fotos:</span>", unsafe_allow_html=True)
+                        cols_img = st.columns(4)
+                        for idx_img, img_file in enumerate(info_b['imagenes'][:4]):
+                            with cols_img[idx_img % 4]:
+                                st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                                st.image(img_file, use_container_width=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                            <div style="margin-top: 15px;">
+                                <a href="{url_wa_vendedor}" target="_blank" style="text-decoration: none;">
+                                    <button style="background-color:#E6005C; color:white; border:none; padding:10px 15px; font-weight:bold; border-radius:8px; cursor:pointer; width:100%; font-size:13px;">
+                                        💬 Contactar por WhatsApp
+                                    </button>
+                                </a>
+                                <div style="text-align: center; color: #D81159; font-weight: bold; font-size: 12px; margin-top: 8px; margin-bottom: 8px;">
+                                    ✨ ¡Gracias por tu preferencia! ✨
+                                </div>
+                                <hr style="border: 0; height: 5px; background-color: #E6005C; margin: 0; border-radius: 5px;">
+                            </div>
                         </div>
-                        <h4 style="margin: 0 0 3px 0; color:#D81159; font-size: 15px; font-weight:bold;">🛍️ {info_b['vendedor']}</h4>
-                        <p style="margin: 1px 0; color:#555555; font-size: 11px; font-weight:normal;"><b>Categoría:</b> {info_b['categoria']}</p>
-                        <p style="margin: 1px 0; color:#555555; font-size: 11px; font-weight:normal; margin-bottom: 6px;"><b>Punto:</b> {info_b['zona']}</p>
-                        <div class="articulos-box-shein">{info_b['articulos']}</div>
-                    </div>
-            """
-            
-            # Agregar el espacio para las fotos de catálogo si existen
-            if info_b.get('imagenes'):
-                html_card += """
-                    <div>
-                        <span style="font-size:11px; color:#1A1A1A;">📸 Catálogo:</span>
-                        <div class="contenedor-fotos-scroll">
-                """
-                # Agregamos las miniaturas compactas en base64 o visualizador directo de Streamlit interno
-                # Para conservar el rendimiento en CSS nativo usamos un marcador responsivo
-                html_card += "</div></div>"
-                
-            # Botón final de acción por tarjeta
-            html_card += f"""
-                    <div style="margin-top: auto;">
-                        <a class="btn-wa-cuadrito" href="{url_wa_vendedor}" target="_blank">
-                            💬 WhatsApp
-                        </a>
-                    </div>
-                </div>
-            """
-            html_grid += html_card
-            
-        html_grid += '</div>'
-        
-        # Renderizamos el esqueleto estético tipo cuadritos Shein
-        st.markdown(html_grid, unsafe_allow_html=True)
-        
-        # Renderizado de imágenes nativo de Streamlit sobrepuesto de forma limpia para que no rompa el performance
-        st.markdown("<p style='font-size:13px; color:white; margin-top:20px;'>📌 <b>Visualizador de Imágenes de Catálogo:</b></p>", unsafe_allow_html=True)
-        for id_b, info_b in lista_rotada:
-            if info_b.get('imagenes'):
-                with st.expander(f"📸 Ver fotos del catálogo de {info_b['vendedor']}"):
-                    cols_img = st.columns(5)
-                    for idx_img, img_file in enumerate(info_b['imagenes'][:15]):
-                        with cols_img[idx_img % 5]:
-                            st.image(img_file, use_container_width=True)
+                        <br>
+                    """, unsafe_allow_html=True)
 
 # ==========================================
 # PESTAÑA 2: REGISTRO DE VENDEDORAS
@@ -406,6 +433,15 @@ with tab_anunciarse:
                 st.write("**📝 Lista enviada:**")
                 st.markdown(f'<div class="articulos-box-shein">{datos["articulos"]}</div>', unsafe_allow_html=True)
             
+            if datos["imagenes"]:
+                st.write("**📸 Imágenes cargadas con éxito:**")
+                cols_prev = st.columns(6)
+                for i, img in enumerate(datos["imagenes"]):
+                    with cols_prev[i % 6]:
+                        st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                        st.image(img, use_container_width=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+            
             st.markdown("---")
             st.markdown("### 📲 ¡Paso Final Obligatorio!")
             
@@ -430,16 +466,18 @@ with tab_anunciarse:
                         "estado": "⏳ En espera de verificación",
                         "fecha": datos["fecha"]
                     }
-                    guardar_datos(st.session_state.bloques_db)
+                    # 💾 Guarda físicamente en el disco al dar click
+                    guardar_datos_disco(st.session_state.bloques_db)
                     st.session_state.enviado_ok = True
                     st.rerun()
             else:
                 st.success("✅ ¡Datos registrados con éxito en el panel de administración!")
                 st.markdown(f"""
-                    <a class="btn-wa-cuadrito" style="font-size:16px; padding:15px;" href="{url_wa}" target="_blank">
+                    <a class="btn-wa-nativo" href="{url_wa}" target="_blank">
                         🚀 ¡TODO LISTO! CLIC AQUÍ PARA CONFIRMAR TU PAGO VÍA WHATSAPP
                     </a>
                 """, unsafe_allow_html=True)
+                st.info("Al dar clic arriba se abrirá el chat. No olvides adjuntar foto del comprobante.")
                 
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -468,21 +506,33 @@ with tab_admin:
                     </div>
                 """, unsafe_allow_html=True)
                 
+                if b_info.get('imagenes'):
+                    st.markdown("**📸 Fotos adjuntas por la vendedora:**")
+                    cols_admin_img = st.columns(6)
+                    for idx, img_obj in enumerate(b_info['imagenes']):
+                        with cols_admin_img[idx % 6]:
+                            st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                            st.image(img_obj, use_container_width=True)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                
                 if b_info['estado'] == "⏳ En espera de verificación":
                     if st.button("🟢 Aceptar Bloque", key=f"tab_acc_{b_id}"):
                         st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
-                        guardar_datos(st.session_state.bloques_db)
+                        # 💾 Guarda en disco físico tras la aprobación
+                        guardar_datos_disco(st.session_state.bloques_db)
                         st.toast(f"¡Bloque {b_id} activado con éxito!")
                         st.rerun()
                 
                 nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=b_info['articulos'], key=f"tab_edit_{b_id}")
                 if nuevo_texto != b_info['articulos']:
                     st.session_state.bloques_db[b_id]['articulos'] = nuevo_texto
-                    guardar_datos(st.session_state.bloques_db)
+                    # 💾 Guarda en disco físico al editar
+                    guardar_datos_disco(st.session_state.bloques_db)
                 
                 if st.button(f"🗑️ Eliminar permanentemente {b_id}", key=f"tab_del_{b_id}"):
                     del st.session_state.bloques_db[b_id]
-                    guardar_datos(st.session_state.bloques_db)
+                    # 💾 Guarda en disco físico tras eliminar
+                    guardar_datos_disco(st.session_state.bloques_db)
                     st.rerun()
                 st.markdown("---")
 
