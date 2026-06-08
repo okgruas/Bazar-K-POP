@@ -45,7 +45,7 @@ def obtener_base64_de_imagen(nombre_archivo):
                 with open(ruta, "rb") as image_file:
                     encoded_string = base64.b64encode(image_file.read()).decode()
                     extension = "png" if ruta.lower().endswith(".png") else "jpeg"
-                    return f"data:image/{extension};base64,{encoded_string}"
+                    return f"data:image/{extension}/base64,{encoded_string}"
     except Exception:
         pass
     return ""
@@ -126,11 +126,11 @@ st.markdown("""
         margin-top: 50px;
     }
     
-    /* ✨ TÍTULO CON DEGRADADO ROSA MÚTELE Y MORADO ✨ */
+    /* ✨ TÍTULO CON DEGRADADO ROSA Y MORADO ✨ */
     .gradient-title {
         font-size: 34px !important;
         font-weight: 900 !important;
-        background: linear-gradient(45deg, #FF1493, #9400D3) !important; /* Rosa Fuerte a Morado Intenso */
+        background: linear-gradient(45deg, #FF1493, #9400D3) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
         display: inline-block !important;
@@ -138,11 +138,13 @@ st.markdown("""
         filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
     }
     
-    .fb-profile-info p {
+    /* 🔮 SUBTÍTULO EN COLOR VIOLETA ROSADO COMPLEMENTARIO 🔮 */
+    .gradient-subtitle {
         font-size: 17px !important;
-        color: #2D0066 !important;
+        color: #7B2CBF !important; /* Violeta/morado vibrante */
         margin: 6px 0 0 0 !important;
-        font-weight: bold !important;
+        font-weight: 800 !important;
+        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
     }
     
     /* Ajustes adaptables perfectos para Celulares */
@@ -158,7 +160,7 @@ st.markdown("""
         .fb-profile-avatar { width: 110px; height: 110px; border-width: 4px; }
         .fb-profile-info { margin-left: 0; margin-top: 15px; }
         .gradient-title { font-size: 24px !important; }
-        .fb-profile-info p { font-size: 14px !important; }
+        .gradient-subtitle { font-size: 14px !important; }
     }
     
     /* ========================================================
@@ -324,16 +326,20 @@ fondo_perfil_fallback = img_perfil_base64 if img_perfil_base64 else "linear-grad
 
 st.markdown(f"""
     <div class="fb-header-container">
+        <!-- Foto de Portada -->
         <div class="fb-cover-wrapper" style="background: {fondo_portada_fallback if not img_portada_base64 else 'none'};">
             {f'<img src="{img_portada_base64}" />' if img_portada_base64 else ''}
         </div>
+        <!-- Fila de Perfil -->
         <div class="fb-profile-row">
             <div class="fb-profile-avatar" style="background: {fondo_perfil_fallback if not img_perfil_base64 else '#FFFFFF'}; display: flex; align-items: center; justify-content: center;">
                 {f'<img src="{img_perfil_base64}" />' if img_perfil_base64 else '<span style="font-size:35px;">✨</span>'}
             </div>
             <div class="fb-profile-info">
+                <!-- Título Principal -->
                 <h1 class="gradient-title">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
-                <p>🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
+                <!-- Subtítulo en Morado Violeta -->
+                <p class="gradient-subtitle">🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
             </div>
         </div>
     </div>
@@ -610,3 +616,4 @@ with tab_admin:
 
 # Sección de pie de página
 st.markdown('<div class="seccion-quejas">Quejas, sugerencias y aclaraciones, con Capitana Albatros: 8143029578</div>', unsafe_allow_html=True)
+                
