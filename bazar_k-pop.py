@@ -252,41 +252,41 @@ st.markdown(f"""
     }}
 
     /* 📱 FILTRO PARA MÓVILES 📱 */
-    @media (max-width: 768px) {
-        div[data-testid="stHorizontalBlock"] {
+    @media (max-width: 768px) {{
+        div[data-testid="stHorizontalBlock"] {{
             display: flex !important;
             flex-direction: row !important;
             flex-wrap: wrap !important;
             gap: 10px !important;
-        }
-        div[data-testid="column"] {
+        }}
+        div[data-testid="column"] {{
             flex: 1 1 45% !important;
             min-width: 45% !important;
-        }
-        .shein-card {
+        }}
+        .shein-card {{
             padding: 8px !important;
             margin-bottom: 10px !important;
-        }
-        .shein-card h4 {
+        }}
+        .shein-card h4 {{
             font-size: 13px !important;
-        }
-        .shein-card p, .articulos-box-shein {
+        }}
+        .shein-card p, .articulos-box-shein {{
             font-size: 11px !important;
             max-height: 90px !important;
-        }
-        div[data-testid="column"] div[data-testid="column"] {
+        }}
+        div[data-testid="column"] div[data-testid="column"] {{
             flex: 1 1 20% !important;
             min-width: 20% !important;
-        }
-        .mini-foto img {
+        }}
+        .mini-foto img {{
             max-height: 45px !important;
             object-fit: cover !important;
-        }
-        .shein-card button {
+        }}
+        .shein-card button {{
             font-size: 11px !important;
             padding: 6px 4px !important;
-        }
-    }
+        }}
+    }}
     </style>
 """, unsafe_allow_html=True)
 
