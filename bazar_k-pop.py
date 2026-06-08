@@ -68,7 +68,6 @@ st.markdown("""
     .fb-header-container {
         position: relative;
         width: 100%;
-        /* Degradado Glassmorphic translúcido de Rosa a Morado con opacidad del 35% */
         background: linear-gradient(135deg, rgba(255, 179, 198, 0.35), rgba(187, 134, 252, 0.35)) !important;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
@@ -98,7 +97,7 @@ st.markdown("""
     .fb-profile-row {
         display: flex;
         align-items: center;
-        margin-top: -45px; /* Sube lo justo para la foto de perfil */
+        margin-top: -45px;
         padding: 0 40px 15px 40px;
         position: relative;
         z-index: 5;
@@ -124,18 +123,24 @@ st.markdown("""
     /* Textos alineados abajo para que NUNCA tapen la portada en Computadora */
     .fb-profile-info {
         margin-left: 25px;
-        margin-top: 50px; /* Empuja los textos hacia abajo fuera de la foto de portada */
+        margin-top: 50px;
     }
-    .fb-profile-info h1 {
+    
+    /* ✨ TÍTULO CON DEGRADADO ROSA MÚTELE Y MORADO ✨ */
+    .gradient-title {
         font-size: 34px !important;
         font-weight: 900 !important;
-        color: #D81159 !important; /* Rosa fuerte clásico */
+        background: linear-gradient(45deg, #FF1493, #9400D3) !important; /* Rosa Fuerte a Morado Intenso */
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        display: inline-block !important;
         margin: 0 !important;
-        text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.9);
+        filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
     }
+    
     .fb-profile-info p {
         font-size: 17px !important;
-        color: #2D0066 !important; /* Morado obscuro para máxima lectura */
+        color: #2D0066 !important;
         margin: 6px 0 0 0 !important;
         font-weight: bold !important;
     }
@@ -152,7 +157,7 @@ st.markdown("""
         }
         .fb-profile-avatar { width: 110px; height: 110px; border-width: 4px; }
         .fb-profile-info { margin-left: 0; margin-top: 15px; }
-        .fb-profile-info h1 { font-size: 24px !important; }
+        .gradient-title { font-size: 24px !important; }
         .fb-profile-info p { font-size: 14px !important; }
     }
     
@@ -313,7 +318,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. ENRENDERIZADO DEL ENCABEZADO MEJORADO CORREGIDO ---
+# --- 5. ENRENDERIZADO DEL ENCABEZADO MEJORADO ---
 fondo_portada_fallback = img_portada_base64 if img_portada_base64 else "linear-gradient(90deg, #FFB3C6, #FF8FAB)"
 fondo_perfil_fallback = img_perfil_base64 if img_perfil_base64 else "linear-gradient(135deg, #FF477E, #FF8FAB)"
 
@@ -327,7 +332,7 @@ st.markdown(f"""
                 {f'<img src="{img_perfil_base64}" />' if img_perfil_base64 else '<span style="font-size:35px;">✨</span>'}
             </div>
             <div class="fb-profile-info">
-                <h1>✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
+                <h1 class="gradient-title">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
                 <p>🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
             </div>
         </div>
