@@ -9,17 +9,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🔥 SECCIÓN DE PORTADA (OPCIÓN 2: IMÁGENES LOCALES) SAFE CONTROL 🔥
-# Con este bloque evitamos que si GitHub no encuentra los archivos, la app se rompa visualmente.
-try:
-    col_p1, col_p2, col_p3 = st.columns([1, 3, 1])
-    with col_p2:
-        st.image("portada1.png", use_container_width=True)
-        st.image("portada2.png", use_container_width=True)
-except Exception:
-    # Si las imágenes no se encuentran o están corruptas, el sistema las salta discretamente
-    pass
-
 # ⚠️ CONFIGURACIÓN DE ADMINISTRADOR ⚠️
 TELEFONO_ADMIN_WHATSAPP = "528143029578"
 CONTRASENA_ADMIN = "bazar123"  # Puedes cambiarla aquí cuando quieras sin perder datos
@@ -37,7 +26,7 @@ def guardar_datos_disco(datos):
 if "bloques_db" not in st.session_state:
     st.session_state.bloques_db = cargar_datos_disco()
 
-# --- ESTILOS CSS ORIGINALES CON MINI-AJUSTE PARA CELULARES ---
+# --- ESTILOS CSS CON EFECTO GLASSMORPHISM ESTILO FACEBOOK ---
 st.markdown("""
     <style>
     /* Fondo general */
@@ -45,7 +34,101 @@ st.markdown("""
         background: linear-gradient(135deg, #FFE5EC 0%, #FFB3C6 40%, #FF477E 100%) !important;
     }
     
-    /* Contenedores blancos generales y tarjetas estilo Shein */
+    /* ========================================================
+       ✨ CONTENEDOR DE PERFIL ESTILO FACEBOOK (GLASSMORPHISM)
+       ======================================================== */
+    .fb-header-container {
+        position: relative;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.25) !important;
+        backdrop-filter: blur(12px) -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        padding: 15px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+        margin-bottom: 30px;
+        overflow: hidden;
+    }
+    
+    /* Foto de portada con esquinas redondeadas */
+    .fb-cover-wrapper {
+        width: 100%;
+        height: 250px;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+    .fb-cover-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Zona inferior del encabezado: Perfil y Títulos */
+    .fb-profile-row {
+        display: flex;
+        align-items: flex-end;
+        margin-top: -60px; /* Sube la foto de perfil sobre la portada */
+        padding: 0 30px 15px 30px;
+        position: relative;
+        z-index: 5;
+    }
+    
+    /* Foto de Perfil Redonda con borde grueso blanco */
+    .fb-profile-avatar {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        border: 5px solid #FFFFFF;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        overflow: hidden;
+        background-color: #FFF;
+        flex-shrink: 0;
+    }
+    .fb-profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Textos al lado de la foto de perfil */
+    .fb-profile-info {
+        margin-left: 20px;
+        margin-bottom: 10px;
+    }
+    .fb-profile-info h1 {
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        color: #D81159 !important;
+        margin: 0 !important;
+        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
+    .fb-profile-info p {
+        font-size: 16px !important;
+        color: #333333 !important;
+        margin: 4px 0 0 0 !important;
+        font-weight: bold !important;
+    }
+    
+    /* Ajustes adaptables para celulares */
+    @media (max-width: 768px) {
+        .fb-cover-wrapper { height: 140px; }
+        .fb-profile-row {
+            flex-direction: column;
+            align-items: center;
+            margin-top: -45px;
+            padding: 0 10px 10px 10px;
+            text-align: center;
+        }
+        .fb-profile-avatar { width: 90px; height: 90px; border-width: 3px; }
+        .fb-profile-info { margin-left: 0; margin-top: 10px; }
+        .fb-profile-info h1 { font-size: 22px !important; }
+        .fb-profile-info p { font-size: 13px !important; }
+    }
+    
+    /* ========================================================
+       TARJETAS Y CONTENIDOS (MANTIENE TU DISEÑO SHEIN)
+       ======================================================== */
     .stForm, .preview-container, .public-block, .admin-box {
         background-color: rgba(255, 255, 255, 0.98) !important;
         padding: 20px;
@@ -54,7 +137,6 @@ st.markdown("""
         margin-bottom: 25px;
     }
     
-    /* Tarjeta compacta específica para el diseño de cuadritos */
     .shein-card {
         background-color: #FFFFFF !important;
         border: 2px solid #FFB3C6 !important;
@@ -68,13 +150,11 @@ st.markdown("""
         height: 100%;
     }
     
-    /* Forzar títulos y etiquetas generales en negro */
     label, p, span, .stRadio p, h1, h2, h3, div[data-testid="stMarkdownContainer"] p {
         color: #1A1A1A !important;
         font-weight: bold !important;
     }
     
-    /* Arreglo de texto en los campos de escritura y forzar cursor (caret) negro */
     textarea, input[type="text"], div[data-testid="stTextArea"] textarea, div[data-testid="stTextInput"] input {
         background-color: #FFFFFF !important;
         color: #1A1A1A !important;
@@ -83,7 +163,6 @@ st.markdown("""
         caret-color: #1A1A1A !important;
     }
     
-    /* Marcador de posición (placeholder) tenue */
     textarea::placeholder, div[data-testid="stTextArea"] textarea::placeholder {
         color: #888888 !important;
         -webkit-text-fill-color: #888888 !important;
@@ -91,27 +170,14 @@ st.markdown("""
         opacity: 0.7 !important;
     }
     
-    /* Cargar imagen en Rosa Pastel */
     div[data-testid="stFileUploader"] section {
         background-color: #FFF0F5 !important;
         border: 2px dashed #E6005C !important;
         border-radius: 10px !important;
     }
-    div[data-testid="stFileUploader"] section * {
-        color: #1A1A1A !important;
-        -webkit-text-fill-color: #1A1A1A !important;
-    }
-    div[data-testid="stFileUploader"] button {
-        background-color: #E6005C !important;
-        color: #FFFFFF !important;
-        border-radius: 8px !important;
-    }
-    div[data-testid="stFileUploader"] button * {
-        color: #FFFFFF !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-    }
+    div[data-testid="stFileUploader"] section * { color: #1A1A1A !important; }
+    div[data-testid="stFileUploader"] button { background-color: #E6005C !important; color: #FFFFFF !important; }
     
-    /* Botón "SUBIR BLOQUE DE ANUNCIOS" en Fucsia brillante */
     div[data-testid="stFormSubmitButton"] button, .stSubmitButton button, div.stSubmitButton > button {
         background-color: #E6005C !important;
         color: #FFFFFF !important;
@@ -120,29 +186,21 @@ st.markdown("""
         padding: 14px 28px !important;
         width: 100% !important;
         box-shadow: 0px 6px 15px rgba(230, 0, 92, 0.4) !important;
-        opacity: 1 !important;
     }
     div[data-testid="stFormSubmitButton"] button *, .stSubmitButton button *, div.stSubmitButton > button * {
         color: #FFFFFF !important;
         font-size: 20px !important;
         font-weight: 900 !important;
-        -webkit-text-fill-color: #FFFFFF !important;
     }
     
-    /* Botones del Administrador (Rosas) */
     div[data-testid="stHorizontalBlock"] button, div[data-testid="element-container"] button {
         background-color: #E6005C !important;
         color: #FFFFFF !important;
         border: 1px solid #FFFFFF !important;
         border-radius: 8px !important;
-        font-weight: bold !important;
     }
-    div[data-testid="stHorizontalBlock"] button *, div[data-testid="element-container"] button * {
-        color: #FFFFFF !important;
-        -webkit-text-fill-color: #FFFFFF !important;
-    }
+    div[data-testid="stHorizontalBlock"] button *, div[data-testid="element-container"] button * { color: #FFFFFF !important; }
 
-    /* BOTÓN DE ACCIÓN (Verde, grande, sin cuadro negro de fondo) */
     div.stButton > button {
         background-color: #25D366 !important;
         color: #1A1A1A !important;
@@ -152,17 +210,8 @@ st.markdown("""
         width: 100% !important;
         box-shadow: 0px 6px 18px rgba(37, 211, 102, 0.4) !important;
     }
-    div.stButton > button * {
-        color: #1A1A1A !important;
-        font-size: 19px !important;
-        font-weight: 900 !important;
-        -webkit-text-fill-color: #1A1A1A !important;
-    }
-    div.stButton > button:hover {
-        background-color: #20BA56 !important;
-    }
+    div.stButton > button * { color: #1A1A1A !important; font-size: 19px !important; font-weight: 900 !important; }
     
-    /* Fotos miniatura controladas estilo catálogo */
     .mini-foto img {
         max-height: 100px !important;
         object-fit: contain !important;
@@ -170,7 +219,6 @@ st.markdown("""
         border: 1px solid #FFB3C6;
     }
     
-    /* Caja de artículos adaptada a tarjeta pequeña */
     .articulos-box-shein {
         background-color: #F8F9FA !important;
         color: #1A1A1A !important;
@@ -188,7 +236,6 @@ st.markdown("""
         background-color: #D4EDDA; color: #155724; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block;
     }
     
-    /* Botón HTML nativo para apertura forzada en pestaña nueva */
     .btn-wa-nativo {
         display: block;
         width: 100%;
@@ -204,10 +251,6 @@ st.markdown("""
         box-shadow: 0px 6px 18px rgba(37, 211, 102, 0.4);
         margin-top: 10px;
     }
-    .btn-wa-nativo:hover {
-        background-color: #20BA56 !important;
-        color: #1A1A1A !important;
-    }
 
     .seccion-quejas {
         text-align: center;
@@ -217,67 +260,52 @@ st.markdown("""
         font-weight: normal !important;
     }
 
-    /* Estilo para el contenedor de la advertencia de seguridad superior */
     .alerta-seguridad-principal {
         background-color: #FFF3CD !important;
         color: #856404 !important;
         padding: 20px;
         border-radius: 12px;
-        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
-        margin-bottom: 25px;
         border-left: 6px solid #FFC107;
+        margin-bottom: 25px;
     }
-    .alerta-seguridad-principal p {
-        color: #856404 !important;
-        font-size: 14px !important;
-        font-weight: normal !important;
-        margin: 0 !important;
-    }
+    .alerta-seguridad-principal p { color: #856404 !important; font-size: 14px !important; font-weight: normal !important; margin: 0 !important; }
 
-    /* 📱 FILTRO DE INYECCIÓN DE PANTALLA PARA MÓVILES (ESTILO SHEIN PEQUEÑO) 📱 */
     @media (max-width: 768px) {
-        div[data-testid="stHorizontalBlock"] {
-            display: flex !important;
-            flex-direction: row !important;
-            flex-wrap: wrap !important;
-            gap: 10px !important;
-        }
-        div[data-testid="column"] {
-            flex: 1 1 45% !important;
-            min-width: 45% !important;
-        }
-        .shein-card {
-            padding: 8px !important;
-            margin-bottom: 10px !important;
-        }
-        .shein-card h4 {
-            font-size: 13px !important;
-        }
-        .shein-card p, .articulos-box-shein {
-            font-size: 11px !important;
-            max-height: 90px !important;
-        }
-        
-        div[data-testid="column"] div[data-testid="column"] {
-            flex: 1 1 20% !important;
-            min-width: 20% !important;
-        }
-        .mini-foto img {
-            max-height: 45px !important;
-            object-fit: cover !important;
-        }
-        
-        .shein-card button {
-            font-size: 11px !important;
-            padding: 6px 4px !important;
-        }
+        div[data-testid="stHorizontalBlock"] { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 10px !important; }
+        div[data-testid="column"] { flex: 1 1 45% !important; min-width: 45% !important; }
+        .shein-card { padding: 8px !important; margin-bottom: 10px !important; }
+        .shein-card h4 { font-size: 13px !important; }
+        .shein-card p, .articulos-box-shein { font-size: 11px !important; max-height: 90px !important; }
+        div[data-testid="column"] div[data-testid="column"] { flex: 1 1 20% !important; min-width: 20% !important; }
+        .mini-foto img { max-height: 45px !important; object-fit: cover !important; }
+        .shein-card button { font-size: 11px !important; padding: 6px 4px !important; }
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- ENCABEZADO ---
-st.markdown('<div style="text-align:center; font-size:42px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
-st.markdown('<div style="text-align:center; font-size:18px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
+# ========================================================
+# REORGANIZACIÓN INTEGRAL DE PORTADA Y PERFIL ESTILO FB
+# ========================================================
+# Nota: "portada1.png" actúa como portada de Facebook, y "portada2.png" como foto de perfil redonda.
+st.markdown("""
+    <div class="fb-header-container">
+        <!-- Foto de Portada -->
+        <div class="fb-cover-wrapper">
+            <img src="app/static/portada1.png" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop';" />
+        </div>
+        <!-- Fila de Perfil -->
+        <div class="fb-profile-row">
+            <div class="fb-profile-avatar">
+                <img src="app/static/portada2.png" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop';" />
+            </div>
+            <div class="fb-profile-info">
+                <h1>✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
+                <p>🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
+            </div>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
 
 # --- PESTAÑAS PRINCIPALES ---
 tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel Admin"])
@@ -547,5 +575,5 @@ with tab_admin:
                     st.rerun()
                 st.markdown("---")
 
-# Sección discreta de quejas al fondo
+# Sección de pie de página
 st.markdown('<div class="seccion-quejas">Quejas, sugerencias y aclaraciones, con Capitana Albatros: 8143029578</div>', unsafe_allow_html=True)
