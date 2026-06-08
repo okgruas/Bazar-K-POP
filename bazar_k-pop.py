@@ -9,12 +9,16 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🔥 SECCIÓN DE PORTADA (OPCIÓN 2: IMÁGENES LOCALES) 🔥
-# Ponemos las dos imágenes juntas en la parte superior como portada centrada
-col_p1, col_p2, col_p3 = st.columns([1, 3, 1])
-with col_p2:
-    st.image("portada1.png", use_container_width=True)
-    st.image("portada2.png", use_container_width=True)
+# 🔥 SECCIÓN DE PORTADA (OPCIÓN 2: IMÁGENES LOCALES) SAFE CONTROL 🔥
+# Con este bloque evitamos que si GitHub no encuentra los archivos, la app se rompa visualmente.
+try:
+    col_p1, col_p2, col_p3 = st.columns([1, 3, 1])
+    with col_p2:
+        st.image("portada1.png", use_container_width=True)
+        st.image("portada2.png", use_container_width=True)
+except Exception:
+    # Si las imágenes no se encuentran o están corruptas, el sistema las salta discretamente
+    pass
 
 # ⚠️ CONFIGURACIÓN DE ADMINISTRADOR ⚠️
 TELEFONO_ADMIN_WHATSAPP = "528143029578"
@@ -38,7 +42,7 @@ st.markdown("""
     <style>
     /* Fondo general */
     .stApp {
-        background: linear-gradient(135deg, #FFE5EC 0%, #FFB3C6 40%, #FF477E 100%);
+        background: linear-gradient(135deg, #FFE5EC 0%, #FFB3C6 40%, #FF477E 100%) !important;
     }
     
     /* Contenedores blancos generales y tarjetas estilo Shein */
@@ -276,7 +280,7 @@ st.markdown('<div style="text-align:center; font-size:42px; font-weight:900; col
 st.markdown('<div style="text-align:center; font-size:18px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
 
 # --- PESTAÑAS PRINCIPALES ---
-tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐"])
+tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel Admin"])
 
 # ==========================================
 # PESTAÑA 1: EL ESCAPARATE PÚBLICO
@@ -463,7 +467,7 @@ with tab_anunciarse:
                 f"📎 *(Por favor, adjunta aquí la foto de tu comprobante antes de enviar el mensaje)*"
             )
             msg_encoded = msg.replace(' ', '%20').replace('\n', '%0A')
-            url_wa = f"https://wa.me/{8143029578}?text={msg_encoded}"
+            url_wa = f"https://wa.me/528143029578?text={msg_encoded}"
             
             if not st.session_state.enviado_ok:
                 if st.button("📲 Click Para Registrar y Preparar Envío de WhatsApp", key="btn_disparador_wa"):
