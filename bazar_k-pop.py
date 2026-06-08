@@ -354,7 +354,7 @@ st.markdown(f"""
 
 
 # --- 6. PESTAÑAS PRINCIPALES DE LA APLICACIÓN ---
-tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel Admin"])
+tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐"])
 
 # ==========================================
 # PESTAÑA 1: EL ESCAPARATE PÚBLICO
