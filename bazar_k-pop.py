@@ -126,18 +126,29 @@ st.markdown("""
         margin-left: 25px;
         margin-top: 50px; /* Empuja los textos hacia abajo fuera de la foto de portada */
     }
-    .fb-profile-info h1 {
+    
+    /* ✨ TÍTULO CON DEGRADADO ROSA Y MORADO ✨ */
+    .gradient-title {
         font-size: 34px !important;
         font-weight: 900 !important;
-        color: #D81159 !important; /* Rosa fuerte clásico */
+        background: linear-gradient(45deg, #FF1493, #9400D3) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        display: inline-block !important;
         margin: 0 !important;
-        text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.9);
+        filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
     }
-    .fb-profile-info p {
+    
+    /* 🔮 SUBTÍTULO CON EL MISMO DEGRADADO ROSA Y MORADO 🔮 */
+    .gradient-subtitle {
         font-size: 17px !important;
-        color: #2D0066 !important; /* Morado obscuro para máxima lectura */
+        font-weight: 800 !important;
+        background: linear-gradient(45deg, #FF1493, #9400D3) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        display: inline-block !important;
         margin: 6px 0 0 0 !important;
-        font-weight: bold !important;
+        filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
     }
     
     /* Ajustes adaptables perfectos para Celulares */
@@ -152,8 +163,8 @@ st.markdown("""
         }
         .fb-profile-avatar { width: 110px; height: 110px; border-width: 4px; }
         .fb-profile-info { margin-left: 0; margin-top: 15px; }
-        .fb-profile-info h1 { font-size: 24px !important; }
-        .fb-profile-info p { font-size: 14px !important; }
+        .gradient-title { font-size: 24px !important; }
+        .gradient-subtitle { font-size: 14px !important; }
     }
     
     /* ========================================================
@@ -327,8 +338,8 @@ st.markdown(f"""
                 {f'<img src="{img_perfil_base64}" />' if img_perfil_base64 else '<span style="font-size:35px;">✨</span>'}
             </div>
             <div class="fb-profile-info">
-                <h1>✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
-                <p>🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
+                <h1 class="gradient-title">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
+                <p class="gradient-subtitle">🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
             </div>
         </div>
     </div>
