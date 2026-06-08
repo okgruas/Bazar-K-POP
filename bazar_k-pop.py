@@ -301,27 +301,15 @@ st.markdown("""
         font-weight: normal !important;
     }
 
-    /* ✨ MEJORA: Aviso de seguridad tenue con Glassmorphism Rosa Pastel ✨ */
     .alerta-seguridad-principal {
-        background-color: rgba(255, 240, 245, 0.45) !important;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background-color: #FFF3CD !important;
+        color: #856404 !important;
         padding: 20px;
-        border-radius: 16px;
-        border-left: 5px solid #FF477E;
-        border-top: 1px solid rgba(255, 255, 255, 0.4);
-        border-right: 1px solid rgba(255, 255, 255, 0.4);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 12px;
+        border-left: 6px solid #FFC107;
         margin-bottom: 25px;
-        box-shadow: 0 8px 20px 0 rgba(230, 0, 92, 0.05);
     }
-    .alerta-seguridad-principal p { 
-        color: #4A0E17 !important; 
-        font-size: 14.5px !important; 
-        font-weight: 500 !important; 
-        margin: 0 !important; 
-        line-height: 1.5;
-    }
+    .alerta-seguridad-principal p { color: #856404 !important; font-size: 14px !important; font-weight: normal !important; margin: 0 !important; }
 
     @media (max-width: 768px) {
         div[data-testid="stHorizontalBlock"] { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 10px !important; }
@@ -368,7 +356,7 @@ with tab_bazar:
     st.markdown("""
         <div class="alerta-seguridad-principal">
             <p>
-                💓 <b>Aviso de Seguridad Importante:</b> Recuerda realizar tus entregas únicamente en <b>lugares públicos y concurridos</b>. 
+                ⚠️ <b>Aviso de Seguridad:</b> Recuerda realizar tus entregas únicamente en <b>lugares públicos y concurridos</b>. 
                 Cada vendedora se hace completamente responsable de sus artículos, precios, acuerdos de entrega y citas correspondientes. 
                 Este espacio funciona únicamente como catálogo digital, por lo que toda transacción y trato es totalmente ajeno a la aplicación.
             </p>
@@ -391,3 +379,240 @@ with tab_bazar:
         
         for i in range(0, len(lista_rotada), columnas_por_fila):
             fila_bloques = lista_rotada[i:i+columnas_por_fila]
+            cols = st.columns(columnas_por_fila)
+            
+            for idx_col, (id_b, info_b) in enumerate(fila_bloques):
+                with cols[idx_col]:
+                    texto_mensaje = "Hola, vengo del bazar digital de k-pop, me interesó alguno de tus artículos. ✨🛍️"
+                    texto_codificado = texto_mensaje.replace(' ', '%20').replace('\n', '%0A')
+                    url_wa_vendedor = f"https://wa.me/{info_b['whatsapp']}?text={texto_codificado}"
+
+                    st.markdown(f"""
+                        <div class="shein-card">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="badge-activo-shein">🟢 ACTIVO</span>
+                                    <span style="font-size: 11px; color: #666666;">📅 {info_b['fecha']}</span>
+                                </div>
+                                <h4 style="margin: 0 0 5px 0; color:#D81159; font-size: 18px;">🛍️ Bazar de {info_b['vendedor']}</h4>
+                                <p style="margin: 2px 0; color:#555555; font-size: 12px;">📂 <b>Categoría:</b> {info_b['categoria']}</p>
+                                <p style="margin: 2px 0; color:#555555; font-size: 12px; margin-bottom: 10px;">📍 <b>Punto:</b> {info_b['zona']}</p>
+                                <div class="articulos-box-shein">{info_b['articulos']}</div>
+                            </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if info_b.get('imagenes'):
+                        st.markdown("<span style='font-size:12px; color:#1A1A1A;'>📸 Fotos:</span>", unsafe_allow_html=True)
+                        cols_img = st.columns(4)
+                        for idx_img, img_file in enumerate(info_b['imagenes'][:4]):
+                            with cols_img[idx_img % 4]:
+                                st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                                st.image(img_file, use_container_width=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                            <div style="margin-top: 15px;">
+                                <a href="{url_wa_vendedor}" target="_blank" style="text-decoration: none;">
+                                    <button style="background-color:#E6005C; color:white; border:none; padding:10px 15px; font-weight:bold; border-radius:8px; cursor:pointer; width:100%; font-size:13px;">
+                                        💬 Contactar por WhatsApp
+                                    </button>
+                                </a>
+                                <div style="text-align: center; color: #D81159; font-weight: bold; font-size: 12px; margin-top: 8px; margin-bottom: 8px;">
+                                    ✨ ¡Gracias por tu preferencia! ✨
+                                </div>
+                                <hr style="border: 0; height: 5px; background-color: #E6005C; margin: 0; border-radius: 5px;">
+                            </div>
+                        </div>
+                        <br>
+                    """, unsafe_allow_html=True)
+
+# ==========================================
+# PESTAÑA 2: REGISTRO DE VENDEDORAS
+# ==========================================
+with tab_anunciarse:
+    st.subheader("💜 Registra tu Bloque de Anuncios")
+    st.write("Costo por bloque: **$25 MXN** con una vigencia automática de 15 días.")
+    
+    if "pre_registro" not in st.session_state:
+        st.session_state.pre_registro = None
+    if "enviado_ok" not in st.session_state:
+        st.session_state.enviado_ok = False
+
+    with st.form("form_anuncio", clear_on_submit=True):
+        st.markdown("### 👤 1. Datos de Contacto")
+        col1, col2 = st.columns(2)
+        with col1:
+            nombre_vendedor = st.text_input("Nombre / Tienda *")
+            whatsapp_vendedor = st.text_input("WhatsApp de Contacto * (10 dígitos)")
+        with col2:
+            zona_entrega = st.text_input("Punto Seguro de Entrega * (ej. Metro Cuauhtémoc)")
+            tipo_articulo = st.radio("Categoría: *", ["K-Pop (Photocards/Coleccionables)", "Mi Clóset (Ropa/Accesorios)"])
+            
+        st.markdown("---")
+        st.markdown("### 🛍️ 2. Tus Artículos y Precios")
+        lista_articulos = st.text_area(
+            "Lista tus productos (Uno por renglón, con precio) *", 
+            placeholder="Ejemplo:\n- Blusa Azul Talla XL - $150\n- Photocard Seungmin ODDINARY - $120"
+        )
+        
+        st.markdown("### 📸 3. Fotos de tus Artículos (Máximo 15)")
+        fotos_articulos = st.file_uploader("Selecciona tus imágenes:", type=["jpg", "png", "jpeg"], accept_multiple_files=True)
+        
+        st.markdown("---")
+        st.markdown("### 💳 4. Pago de Validación ($25 MXN)")
+        st.markdown("""
+            <div style="background-color: #FFFFFF; padding: 20px; border-radius: 10px; border: 2px solid #D81159;">
+                <p style="color: #D81159 !important; font-size: 17px !important; margin: 0 0 5px 0; font-weight: 900;">🏛️ BANCO: NU MÉXICO</p>
+                <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0 0 5px 0; font-family: monospace; font-weight: bold;">🔑 CLABE: 0123 4567 8901 2345 67</p>
+                <p style="color: #1A1A1A !important; font-size: 17px !important; margin: 0; font-weight: bold;">👤 TITULAR: CAPITANA ALBATROS</p>
+            </div>
+        """, unsafe_allow_html=True)
+        st.write("")
+        comprobante = st.file_uploader("Sube la foto de tu comprobante de transferencia *", type=["jpg", "png", "jpeg"])
+        
+        enviar_anuncio = st.form_submit_button("Subir Bloque de Anuncios para Validación")
+
+        if enviar_anuncio:
+            if fotos_articulos and len(fotos_articulos) > 15:
+                st.error("No puedes subir más de 15 fotos.")
+            elif not (nombre_vendedor and whatsapp_vendedor and zona_entrega and lista_articulos and comprobante):
+                st.error("Por favor, llena todos los campos obligatorios (*) y carga tu comprobante.")
+            else:
+                id_transaccion = f"BZR-{datetime.now().strftime('%d%H%M%S')}"
+                st.session_state.pre_registro = {
+                    "id": id_transaccion,
+                    "vendedor": nombre_vendedor,
+                    "whatsapp": whatsapp_vendedor,
+                    "zona": zona_entrega,
+                    "categoria": tipo_articulo,
+                    "articulos": lista_articulos,
+                    "imagenes": fotos_articulos,
+                    "estado": "⏳ En espera de verificación",
+                    "fecha": datetime.now().strftime("%d/%m/%Y")
+                }
+                st.session_state.enviado_ok = False
+
+    if st.session_state.pre_registro is not None:
+        datos = st.session_state.pre_registro
+        id_b = datos["id"]
+        
+        if id_b in st.session_state.bloques_db and st.session_state.bloques_db[id_b]['estado'] == "🟢 ACTIVO":
+            st.session_state.pre_registro = None
+            st.session_state.enviado_ok = False
+            st.rerun()
+        else:
+            st.markdown('<div class="preview-container">', unsafe_allow_html=True)
+            st.warning("⏳ Tu registro está en proceso de revisión. Por favor, realiza el paso final de WhatsApp en la parte de abajo.")
+            
+            st.markdown("### 👀 Detalles de tu Solicitud")
+            col_p1, col_p2 = st.columns([1, 2])
+            with col_p1:
+                st.metric(label="Monto por Validar", value="$25 MXN")
+                st.write(f"🆔 **ID Asignado:** `{id_b}`")
+            with col_p2:
+                st.write(f"👤 **Vendedora:** {datos['vendedor']}")
+                st.write(f"📍 **Punto Seguro:** {datos['zona']}")
+                st.write("**📝 Lista enviada:**")
+                st.markdown(f'<div class="articulos-box-shein">{datos["articulos"]}</div>', unsafe_allow_html=True)
+            
+            if datos["imagenes"]:
+                st.write("**📸 Imágenes cargadas con éxito:**")
+                cols_prev = st.columns(6)
+                for i, img in enumerate(datos["imagenes"]):
+                    with cols_prev[i % 6]:
+                        st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                        st.image(img, use_container_width=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.markdown("### 📲 ¡Paso Final Obligatorio!")
+            
+            msg = (
+                f"Hola, vengo de la página del Bazar.\n\n"
+                f"👤 *Vendedora:* {datos['vendedor']}\n"
+                f"🆔 *ID de Registro:* {id_b}\n\n"
+                f"📎 *(Por favor, adjunta aquí la foto de tu comprobante antes de enviar el mensaje)*"
+            )
+            msg_encoded = msg.replace(' ', '%20').replace('\n', '%0A')
+            url_wa = f"https://wa.me/528143029578?text={msg_encoded}"
+            
+            if not st.session_state.enviado_ok:
+                if st.button("📲 Click Para Registrar y Preparar Envío de WhatsApp", key="btn_disparador_wa"):
+                    st.session_state.bloques_db[id_b] = {
+                        "vendedor": datos["vendedor"],
+                        "whatsapp": datos["whatsapp"],
+                        "zona": datos["zona"],
+                        "categoria": datos["categoria"],
+                        "articulos": datos["articulos"],
+                        "imagenes": datos["imagenes"],
+                        "estado": "⏳ En espera de verificación",
+                        "fecha": datos["fecha"]
+                    }
+                    guardar_datos_disco(st.session_state.bloques_db)
+                    st.session_state.enviado_ok = True
+                    st.rerun()
+            else:
+                st.success("✅ ¡Datos registrados con éxito en el panel de administración!")
+                st.markdown(f"""
+                    <a class="btn-wa-nativo" href="{url_wa}" target="_blank">
+                        🚀 ¡TODO LISTO! CLIC AQUÍ PARA CONFIRMAR TU PAGO VÍA WHATSAPP
+                    </a>
+                """, unsafe_allow_html=True)
+                st.info("Al dar clic arriba se abrirá el chat. No olvides adjuntar foto del comprobante.")
+                
+            st.markdown('</div>', unsafe_allow_html=True)
+
+# ==========================================
+# 🔐 PESTAÑA 3: PANEL DE CONTROL DE ADMINISTRADORA
+# ==========================================
+with tab_admin:
+    st.subheader("🔐 Consola de Verificación")
+    clave_ingresada = st.text_input("Introduce la Contraseña de Administradora:", type="password", key="tab_admin_key")
+    
+    if clave_ingresada == CONTRASENA_ADMIN:
+        st.success("Acceso Autorizado - Modo Gestor")
+        st.markdown("### 🛠️ Solicitudes del Sistema")
+        
+        if not st.session_state.bloques_db:
+            st.info("No hay bloques registrados actualmente esperando acción en el sistema.")
+        else:
+            for b_id in list(st.session_state.bloques_db.keys()):
+                b_info = st.session_state.bloques_db[b_id]
+                
+                st.markdown(f"""
+                    <div class="admin-box">
+                        <span style="color:#D81159;"><b>ID Solicitud:</b> {b_id}</span><br>
+                        <b>Vendedora:</b> {b_info['vendedor']} | <b>Celular:</b> {b_info['whatsapp']}<br>
+                        <b>Estado Actual:</b> <code>{b_info['estado']}</code>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                if b_info.get('imagenes'):
+                    st.markdown("**📸 Fotos adjuntas por la vendedora:**")
+                    cols_admin_img = st.columns(6)
+                    for idx, img_obj in enumerate(b_info['imagenes']):
+                        with cols_admin_img[idx % 6]:
+                            st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
+                            st.image(img_obj, use_container_width=True)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                
+                if b_info['estado'] == "⏳ En espera de verificación":
+                    if st.button("🟢 Aceptar Bloque", key=f"tab_acc_{b_id}"):
+                        st.session_state.bloques_db[b_id]['estado'] = "🟢 ACTIVO"
+                        guardar_datos_disco(st.session_state.bloques_db)
+                        st.toast(f"¡Bloque {b_id} activado con éxito!")
+                        st.rerun()
+                
+                nuevo_texto = st.text_area(f"Modificar artículos de {b_id}:", value=b_info['articulos'], key=f"tab_edit_{b_id}")
+                if nuevo_texto != b_info['articulos']:
+                    st.session_state.bloques_db[b_id]['articulos'] = nuevo_texto
+                    guardar_datos_disco(st.session_state.bloques_db)
+                
+                if st.button(f"🗑️ Eliminar permanentemente {b_id}", key=f"tab_del_{b_id}"):
+                    del st.session_state.bloques_db[b_id]
+                    guardar_datos_disco(st.session_state.bloques_db)
+                    st.rerun()
+                st.markdown("---")
+
+# Sección de pie de página
+st.markdown('<div class="seccion-quejas">Quejas, sugerencias y aclaraciones, con Capitana Albatros: 8143029578</div>', unsafe_allow_html=True)
