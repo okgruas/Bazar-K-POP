@@ -9,6 +9,13 @@ st.set_page_config(
     layout="wide"
 )
 
+# 🔥 SECCIÓN DE PORTADA (OPCIÓN 2: IMÁGENES LOCALES) 🔥
+# Ponemos las dos imágenes juntas en la parte superior como portada centrada
+col_p1, col_p2, col_p3 = st.columns([1, 3, 1])
+with col_p2:
+    st.image("portada1.png", use_container_width=True)
+    st.image("portada2.png", use_container_width=True)
+
 # ⚠️ CONFIGURACIÓN DE ADMINISTRADOR ⚠️
 TELEFONO_ADMIN_WHATSAPP = "528143029578"
 CONTRASENA_ADMIN = "bazar123"  # Puedes cambiarla aquí cuando quieras sin perder datos
@@ -225,7 +232,6 @@ st.markdown("""
 
     /* 📱 FILTRO DE INYECCIÓN DE PANTALLA PARA MÓVILES (ESTILO SHEIN PEQUEÑO) 📱 */
     @media (max-width: 768px) {
-        /* Fuerza a que las columnas de Streamlit no se hagan del 100% y respeten los cuadritos juntos */
         div[data-testid="stHorizontalBlock"] {
             display: flex !important;
             flex-direction: row !important;
@@ -233,10 +239,9 @@ st.markdown("""
             gap: 10px !important;
         }
         div[data-testid="column"] {
-            flex: 1 1 45% !important; /* Coloca exactamente 2 cuadritos por fila en el cel */
+            flex: 1 1 45% !important;
             min-width: 45% !important;
         }
-        /* Achica la tarjeta para vista miniatura de catálogo */
         .shein-card {
             padding: 8px !important;
             margin-bottom: 10px !important;
@@ -249,14 +254,13 @@ st.markdown("""
             max-height: 90px !important;
         }
         
-        /* Control estricto para que las fotos NO se vean gigantes en el celular */
         div[data-testid="column"] div[data-testid="column"] {
-            flex: 1 1 20% !important; /* Fuerza a las fotos a ponerse en fila horizontal de 4 */
+            flex: 1 1 20% !important;
             min-width: 20% !important;
         }
         .mini-foto img {
-            max-height: 45px !important; /* Fotos mucho más pequeñas tipo miniatura */
-            object-fit: cover !important; /* Evita que se deformen */
+            max-height: 45px !important;
+            object-fit: cover !important;
         }
         
         .shein-card button {
@@ -271,7 +275,7 @@ st.markdown("""
 st.markdown('<div style="text-align:center; font-size:42px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
 st.markdown('<div style="text-align:center; font-size:18px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
 
-# --- PESTAÑAS PRINCIPALES (Pestaña de Admin cambiada solo a "🔐") ---
+# --- PESTAÑAS PRINCIPALES ---
 tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐"])
 
 # ==========================================
@@ -296,7 +300,6 @@ with tab_bazar:
     else:
         lista_bloques = list(bloques_activos.items())
         
-        # 🔄 ALGORITMO DE ROTACIÓN HORARIA ORIGINAL 🔄
         hora_actual = datetime.now().hour
         desplazamiento = hora_actual % len(lista_bloques)
         lista_rotada = lista_bloques[desplazamiento:] + lista_bloques[:desplazamiento]
