@@ -31,14 +31,13 @@ if "bloques_db" not in st.session_state:
 # --- 3. FUNCIÓN ULTRA-SEGURA PARA CARGAR IMÁGENES LOCALES (EVITA PANTALLA NEGRA) ---
 def obtener_base64_de_imagen(nombre_archivo):
     try:
-        # Lista de rutas posibles donde podrían estar tus logos en el proyecto
         rutas_a_probar = [
             nombre_archivo,
             os.path.join("static", nombre_archivo),
             os.path.join("app", "static", nombre_archivo),
             nombre_archivo.replace(".png", ".jpg"),
             nombre_archivo.replace(".png", ".jpeg"),
-            nombre_archivo.upper(),  # Por si está en mayúsculas (.PNG)
+            nombre_archivo.upper(),
         ]
         
         for ruta in rutas_a_probar:
@@ -49,33 +48,34 @@ def obtener_base64_de_imagen(nombre_archivo):
                     return f"data:image/{extension};base64,{encoded_string}"
     except Exception:
         pass
-    return ""  # Si no existe o falla, retorna vacío para usar el respaldo visual
+    return ""
 
 # Cargar imágenes locales de forma segura
 img_portada_base64 = obtener_base64_de_imagen("portada1.png")
 img_perfil_base64 = obtener_base64_de_imagen("portada2.png")
 
-# --- 4. ESTILOS CSS CON EFECTO GLASSMORPHISM ESTILO FACEBOOK ---
+# --- 4. ESTILOS CSS CON EFECTO GLASSMORPHISM ROSA/MORADO DEGRADADO ---
 st.markdown("""
     <style>
-    /* Fondo general */
+    /* Fondo general de la App */
     .stApp {
         background: linear-gradient(135deg, #FFE5EC 0%, #FFB3C6 40%, #FF477E 100%) !important;
     }
     
     /* ========================================================
-       ✨ CONTENEDOR DE PERFIL ESTILO FACEBOOK (GLASSMORPHISM)
+       ✨ CONTENEDOR DE PERFIL ESTILO FACEBOOK (GLASSMORPHISM MEJORADO)
        ======================================================== */
     .fb-header-container {
         position: relative;
         width: 100%;
-        background: rgba(255, 255, 255, 0.25) !important;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 20px;
+        /* Degradado Glassmorphic translúcido de Rosa a Morado con opacidad del 35% */
+        background: linear-gradient(135deg, rgba(255, 179, 198, 0.35), rgba(187, 134, 252, 0.35)) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 24px;
         padding: 15px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.12);
         margin-bottom: 30px;
         overflow: hidden;
     }
@@ -83,8 +83,8 @@ st.markdown("""
     /* Foto de portada con esquinas redondeadas */
     .fb-cover-wrapper {
         width: 100%;
-        height: 250px;
-        border-radius: 15px;
+        height: 280px;
+        border-radius: 18px;
         overflow: hidden;
         position: relative;
     }
@@ -94,25 +94,26 @@ st.markdown("""
         object-fit: cover;
     }
     
-    /* Zona inferior del encabezado: Perfil y Títulos */
+    /* Zona inferior del encabezado: Perfil y Títulos abajo de la foto */
     .fb-profile-row {
         display: flex;
-        align-items: flex-end;
-        margin-top: -60px; /* Sube la foto de perfil sobre la portada */
-        padding: 0 30px 15px 30px;
+        align-items: center;
+        margin-top: -45px; /* Sube lo justo para la foto de perfil */
+        padding: 0 40px 15px 40px;
         position: relative;
         z-index: 5;
     }
     
     /* Foto de Perfil Redonda con borde grueso blanco */
     .fb-profile-avatar {
-        width: 130px;
-        height: 130px;
+        width: 140px;
+        height: 140px;
         border-radius: 50%;
         border: 5px solid #FFFFFF;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        box-shadow: 0px 6px 16px rgba(0,0,0,0.15);
         overflow: hidden;
         flex-shrink: 0;
+        background-color: #FFFFFF;
     }
     .fb-profile-avatar img {
         width: 100%;
@@ -120,39 +121,39 @@ st.markdown("""
         object-fit: cover;
     }
     
-    /* Textos al lado de la foto de perfil */
+    /* Textos alineados abajo para que NUNCA tapen la portada en Computadora */
     .fb-profile-info {
-        margin-left: 20px;
-        margin-bottom: 10px;
+        margin-left: 25px;
+        margin-top: 50px; /* Empuja los textos hacia abajo fuera de la foto de portada */
     }
     .fb-profile-info h1 {
-        font-size: 32px !important;
+        font-size: 34px !important;
         font-weight: 900 !important;
-        color: #D81159 !important;
+        color: #D81159 !important; /* Rosa fuerte clásico */
         margin: 0 !important;
-        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.9);
     }
     .fb-profile-info p {
-        font-size: 16px !important;
-        color: #333333 !important;
-        margin: 4px 0 0 0 !important;
+        font-size: 17px !important;
+        color: #2D0066 !important; /* Morado obscuro para máxima lectura */
+        margin: 6px 0 0 0 !important;
         font-weight: bold !important;
     }
     
-    /* Ajustes adaptables para celulares */
+    /* Ajustes adaptables perfectos para Celulares */
     @media (max-width: 768px) {
-        .fb-cover-wrapper { height: 140px; }
+        .fb-cover-wrapper { height: 150px; }
         .fb-profile-row {
             flex-direction: column;
             align-items: center;
-            margin-top: -45px;
+            margin-top: -55px;
             padding: 0 10px 10px 10px;
             text-align: center;
         }
-        .fb-profile-avatar { width: 90px; height: 90px; border-width: 3px; }
-        .fb-profile-info { margin-left: 0; margin-top: 10px; }
-        .fb-profile-info h1 { font-size: 22px !important; }
-        .fb-profile-info p { font-size: 13px !important; }
+        .fb-profile-avatar { width: 110px; height: 110px; border-width: 4px; }
+        .fb-profile-info { margin-left: 0; margin-top: 15px; }
+        .fb-profile-info h1 { font-size: 24px !important; }
+        .fb-profile-info p { font-size: 14px !important; }
     }
     
     /* ========================================================
@@ -312,21 +313,18 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. ENRENDERIZADO DEL ENCABEZADO ESTILO FACEBOOK CON RESPALDOS SMART ---
-# Si las variables base64 están vacías por un nombre erróneo, se pinta un degradado estético automático
+# --- 5. ENRENDERIZADO DEL ENCABEZADO MEJORADO CORREGIDO ---
 fondo_portada_fallback = img_portada_base64 if img_portada_base64 else "linear-gradient(90deg, #FFB3C6, #FF8FAB)"
 fondo_perfil_fallback = img_perfil_base64 if img_perfil_base64 else "linear-gradient(135deg, #FF477E, #FF8FAB)"
 
 st.markdown(f"""
     <div class="fb-header-container">
-        <!-- Foto de Portada -->
         <div class="fb-cover-wrapper" style="background: {fondo_portada_fallback if not img_portada_base64 else 'none'};">
             {f'<img src="{img_portada_base64}" />' if img_portada_base64 else ''}
         </div>
-        <!-- Fila de Perfil -->
         <div class="fb-profile-row">
             <div class="fb-profile-avatar" style="background: {fondo_perfil_fallback if not img_perfil_base64 else '#FFFFFF'}; display: flex; align-items: center; justify-content: center;">
-                {f'<img src="{img_perfil_base64}" />' if img_perfil_base64 else '<span style="font-size:30px;">✨</span>'}
+                {f'<img src="{img_perfil_base64}" />' if img_perfil_base64 else '<span style="font-size:35px;">✨</span>'}
             </div>
             <div class="fb-profile-info">
                 <h1>✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
