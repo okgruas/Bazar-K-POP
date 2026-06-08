@@ -45,7 +45,7 @@ def obtener_base64_de_imagen(nombre_archivo):
                 with open(ruta, "rb") as image_file:
                     encoded_string = base64.b64encode(image_file.read()).decode()
                     extension = "png" if ruta.lower().endswith(".png") else "jpeg"
-                    return f"data:image/{extension}/base64,{encoded_string}"
+                    return f"data:image/{extension};base64,{encoded_string}"
     except Exception:
         pass
     return ""
@@ -126,11 +126,11 @@ st.markdown("""
         margin-top: 50px;
     }
     
-    /* ✨ TÍTULO CON DEGRADADO ROSA Y MORADO ✨ */
+    /* ✨ TÍTULO CON DEGRADADO ROSA MÚTELE Y MORADO ✨ */
     .gradient-title {
         font-size: 34px !important;
         font-weight: 900 !important;
-        background: linear-gradient(45deg, #FF1493, #9400D3) !important;
+        background: linear-gradient(45deg, #FF1493, #9400D3) !important; /* Rosa Fuerte a Morado Intenso */
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
         display: inline-block !important;
@@ -138,13 +138,11 @@ st.markdown("""
         filter: drop-shadow(1px 1px 1px rgba(255, 255, 255, 0.8));
     }
     
-    /* 🔮 SUBTÍTULO EN COLOR VIOLETA ROSADO COMPLEMENTARIO 🔮 */
-    .gradient-subtitle {
+    .fb-profile-info p {
         font-size: 17px !important;
-        color: #7B2CBF !important; /* Violeta/morado vibrante */
+        color: #2D0066 !important;
         margin: 6px 0 0 0 !important;
-        font-weight: 800 !important;
-        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
+        font-weight: bold !important;
     }
     
     /* Ajustes adaptables perfectos para Celulares */
@@ -160,7 +158,7 @@ st.markdown("""
         .fb-profile-avatar { width: 110px; height: 110px; border-width: 4px; }
         .fb-profile-info { margin-left: 0; margin-top: 15px; }
         .gradient-title { font-size: 24px !important; }
-        .gradient-subtitle { font-size: 14px !important; }
+        .fb-profile-info p { font-size: 14px !important; }
     }
     
     /* ========================================================
@@ -320,26 +318,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. ENRENDERIZADO DEL ENCABEZADO MEJORADO ---
+# --- 5. RENDERIZADO DEL ENCABEZADO MEJORADO ---
 fondo_portada_fallback = img_portada_base64 if img_portada_base64 else "linear-gradient(90deg, #FFB3C6, #FF8FAB)"
 fondo_perfil_fallback = img_perfil_base64 if img_perfil_base64 else "linear-gradient(135deg, #FF477E, #FF8FAB)"
 
 st.markdown(f"""
     <div class="fb-header-container">
-        <!-- Foto de Portada -->
         <div class="fb-cover-wrapper" style="background: {fondo_portada_fallback if not img_portada_base64 else 'none'};">
             {f'<img src="{img_portada_base64}" />' if img_portada_base64 else ''}
         </div>
-        <!-- Fila de Perfil -->
         <div class="fb-profile-row">
             <div class="fb-profile-avatar" style="background: {fondo_perfil_fallback if not img_perfil_base64 else '#FFFFFF'}; display: flex; align-items: center; justify-content: center;">
                 {f'<img src="{img_perfil_base64}" />' if img_perfil_base64 else '<span style="font-size:35px;">✨</span>'}
             </div>
             <div class="fb-profile-info">
-                <!-- Título Principal -->
                 <h1 class="gradient-title">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</h1>
-                <!-- Subtítulo en Morado Violeta -->
-                <p class="gradient-subtitle">🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
+                <p>🛍️ Photocards, Coleccionables & Moda • Monterrey</p>
             </div>
         </div>
     </div>
@@ -404,10 +398,10 @@ with tab_bazar:
                     if info_b.get('imagenes'):
                         st.markdown("<span style='font-size:12px; color:#1A1A1A;'>📸 Fotos:</span>", unsafe_allow_html=True)
                         cols_img = st.columns(4)
-                        for idx_img, img_file in enumerate(info_b['imagenes'][:4]):
+                        for idx_img, img_base64 in enumerate(info_b['imagenes'][:4]):
                             with cols_img[idx_img % 4]:
                                 st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
-                                st.image(img_file, use_container_width=True)
+                                st.markdown(f'<img src="{img_base64}" style="width:100%; border-radius:6px;" />', unsafe_allow_html=True)
                                 st.markdown('</div>', unsafe_allow_html=True)
                     
                     st.markdown(f"""
@@ -479,6 +473,19 @@ with tab_anunciarse:
                 st.error("Por favor, llena todos los campos obligatorios (*) y carga tu comprobante.")
             else:
                 id_transaccion = f"BZR-{datetime.now().strftime('%d%H%M%S')}"
+                
+                # --- PROCESAR IMÁGENES A BASE64 PARA PERSISTENCIA REAL ---
+                imagenes_b64 = []
+                for f in fotos_articulos:
+                    try:
+                        bytes_data = f.read()
+                        b64_str = base64.b64encode(bytes_data).decode()
+                        ext = f.name.split('.')[-1].lower()
+                        if ext == "jpg": ext = "jpeg"
+                        imagenes_b64.append(f"data:image/{ext};base64,{b64_str}")
+                    except Exception:
+                        pass
+
                 st.session_state.pre_registro = {
                     "id": id_transaccion,
                     "vendedor": nombre_vendedor,
@@ -486,7 +493,7 @@ with tab_anunciarse:
                     "zona": zona_entrega,
                     "categoria": tipo_articulo,
                     "articulos": lista_articulos,
-                    "imagenes": fotos_articulos,
+                    "imagenes": imagenes_b64,  # Guardadas como strings puros de base64
                     "estado": "⏳ En espera de verificación",
                     "fecha": datetime.now().strftime("%d/%m/%Y")
                 }
@@ -518,10 +525,10 @@ with tab_anunciarse:
             if datos["imagenes"]:
                 st.write("**📸 Imágenes cargadas con éxito:**")
                 cols_prev = st.columns(6)
-                for i, img in enumerate(datos["imagenes"]):
+                for i, img_b64 in enumerate(datos["imagenes"]):
                     with cols_prev[i % 6]:
                         st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
-                        st.image(img, use_container_width=True)
+                        st.markdown(f'<img src="{img_b64}" style="width:100%; border-radius:6px;" />', unsafe_allow_html=True)
                         st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown("---")
@@ -590,10 +597,10 @@ with tab_admin:
                 if b_info.get('imagenes'):
                     st.markdown("**📸 Fotos adjuntas por la vendedora:**")
                     cols_admin_img = st.columns(6)
-                    for idx, img_obj in enumerate(b_info['imagenes']):
+                    for idx, img_b64 in enumerate(b_info['imagenes']):
                         with cols_admin_img[idx % 6]:
                             st.markdown('<div class="mini-foto">', unsafe_allow_html=True)
-                            st.image(img_obj, use_container_width=True)
+                            st.markdown(f'<img src="{img_b64}" style="width:100%; border-radius:6px;" />', unsafe_allow_html=True)
                             st.markdown('</div>', unsafe_allow_html=True)
                 
                 if b_info['estado'] == "⏳ En espera de verificación":
@@ -616,4 +623,3 @@ with tab_admin:
 
 # Sección de pie de página
 st.markdown('<div class="seccion-quejas">Quejas, sugerencias y aclaraciones, con Capitana Albatros: 8143029578</div>', unsafe_allow_html=True)
-                
