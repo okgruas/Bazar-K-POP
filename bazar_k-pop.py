@@ -9,13 +9,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🔥 SECCIÓN DE PORTADA (OPCIÓN 2: IMÁGENES LOCALES) 🔥
-# Ponemos las dos imágenes juntas en la parte superior como portada centrada
-col_p1, col_p2, col_p3 = st.columns([1, 3, 1])
-with col_p2:
-    st.image("portada1.png", use_container_width=True)
-    st.image("portada2.png", use_container_width=True)
-
 # ⚠️ CONFIGURACIÓN DE ADMINISTRADOR ⚠️
 TELEFONO_ADMIN_WHATSAPP = "528143029578"
 CONTRASENA_ADMIN = "bazar123"  # Puedes cambiarla aquí cuando quieras sin perder datos
@@ -33,25 +26,54 @@ def guardar_datos_disco(datos):
 if "bloques_db" not in st.session_state:
     st.session_state.bloques_db = cargar_datos_disco()
 
-# --- ESTILOS CSS ORIGINALES CON MINI-AJUSTE PARA CELULARES ---
-st.markdown("""
+# --- URLS DE IMÁGENES DE PORTADA ---
+# Remplaza estos links por los enlaces reales de tus portadas (pueden ser de Imgur, Postimages, etc.)
+URL_PORTADA_FONDO = "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1000" 
+URL_PORTADA_LATERAL = "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1000"
+
+# --- ESTILOS CSS CON EFECTO TENUE Y ADAPTACIONES ---
+st.markdown(f"""
     <style>
-    /* Fondo general */
-    .stApp {
-        background: linear-gradient(135deg, #FFE5EC 0%, #FFB3C6 40%, #FF477E 100%);
-    }
+    /* Fondo general con la Portada 1 súper tenue y desenfocada */
+    .stApp {{
+        background: linear-gradient(135deg, rgba(255, 229, 236, 0.85) 0%, rgba(255, 179, 198, 0.85) 40%, rgba(255, 71, 126, 0.85) 100%) !important;
+        position: relative;
+    }}
+    
+    .stApp::before {{
+        content: "";
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url('{URL_PORTADA_FONDO}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.12; /* Súper tenue para no competir con el contenido */
+        filter: blur(8px); /* Difuminado sutil */
+        z-index: -1;
+    }}
+    
+    /* Imagen de Portada Lateral estilo Facebook */
+    .portada-lateral-container {{
+        text-align: center;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid #FFB3C6;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }}
     
     /* Contenedores blancos generales y tarjetas estilo Shein */
-    .stForm, .preview-container, .public-block, .admin-box {
+    .stForm, .preview-container, .public-block, .admin-box {{
         background-color: rgba(255, 255, 255, 0.98) !important;
         padding: 20px;
         border-radius: 15px;
         box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.15);
         margin-bottom: 25px;
-    }
+    }}
     
     /* Tarjeta compacta específica para el diseño de cuadritos */
-    .shein-card {
+    .shein-card {{
         background-color: #FFFFFF !important;
         border: 2px solid #FFB3C6 !important;
         border-radius: 12px;
@@ -62,53 +84,53 @@ st.markdown("""
         flex-direction: column;
         justify-content: space-between;
         height: 100%;
-    }
+    }}
     
     /* Forzar títulos y etiquetas generales en negro */
-    label, p, span, .stRadio p, h1, h2, h3, div[data-testid="stMarkdownContainer"] p {
+    label, p, span, .stRadio p, h1, h2, h3, div[data-testid="stMarkdownContainer"] p {{
         color: #1A1A1A !important;
         font-weight: bold !important;
-    }
+    }}
     
     /* Arreglo de texto en los campos de escritura y forzar cursor (caret) negro */
-    textarea, input[type="text"], div[data-testid="stTextArea"] textarea, div[data-testid="stTextInput"] input {
+    textarea, input[type="text"], div[data-testid="stTextArea"] textarea, div[data-testid="stTextInput"] input {{
         background-color: #FFFFFF !important;
         color: #1A1A1A !important;
         border: 2px solid #FF477E !important;
         -webkit-text-fill-color: #1A1A1A !important;
         caret-color: #1A1A1A !important;
-    }
+    }}
     
     /* Marcador de posición (placeholder) tenue */
-    textarea::placeholder, div[data-testid="stTextArea"] textarea::placeholder {
+    textarea::placeholder, div[data-testid="stTextArea"] textarea::placeholder {{
         color: #888888 !important;
         -webkit-text-fill-color: #888888 !important;
         font-weight: normal !important;
         opacity: 0.7 !important;
-    }
+    }}
     
     /* Cargar imagen en Rosa Pastel */
-    div[data-testid="stFileUploader"] section {
+    div[data-testid="stFileUploader"] section {{
         background-color: #FFF0F5 !important;
         border: 2px dashed #E6005C !important;
         border-radius: 10px !important;
-    }
-    div[data-testid="stFileUploader"] section * {
+    }}
+    div[data-testid="stFileUploader"] section * {{
         color: #1A1A1A !important;
         -webkit-text-fill-color: #1A1A1A !important;
-    }
-    div[data-testid="stFileUploader"] button {
+    }}
+    div[data-testid="stFileUploader"] button {{
         background-color: #E6005C !important;
         color: #FFFFFF !important;
         border-radius: 8px !important;
-    }
-    div[data-testid="stFileUploader"] button * {
+    }}
+    div[data-testid="stFileUploader"] button * {{
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
-    }
+    }}
     
     /* Botón "SUBIR BLOQUE DE ANUNCIOS" en Fucsia brillante */
-    div[data-testid="stFormSubmitButton"] button, .stSubmitButton button, div.stSubmitButton > button {
+    div[data-testid="stFormSubmitButton"] button, .stSubmitButton button, div.stSubmitButton > button {{
         background-color: #E6005C !important;
         color: #FFFFFF !important;
         border: 2px solid #FFFFFF !important;
@@ -117,29 +139,29 @@ st.markdown("""
         width: 100% !important;
         box-shadow: 0px 6px 15px rgba(230, 0, 92, 0.4) !important;
         opacity: 1 !important;
-    }
-    div[data-testid="stFormSubmitButton"] button *, .stSubmitButton button *, div.stSubmitButton > button * {
+    }}
+    div[data-testid="stFormSubmitButton"] button *, .stSubmitButton button *, div.stSubmitButton > button * {{
         color: #FFFFFF !important;
         font-size: 20px !important;
         font-weight: 900 !important;
         -webkit-text-fill-color: #FFFFFF !important;
-    }
+    }}
     
     /* Botones del Administrador (Rosas) */
-    div[data-testid="stHorizontalBlock"] button, div[data-testid="element-container"] button {
+    div[data-testid="stHorizontalBlock"] button, div[data-testid="element-container"] button {{
         background-color: #E6005C !important;
         color: #FFFFFF !important;
         border: 1px solid #FFFFFF !important;
         border-radius: 8px !important;
         font-weight: bold !important;
-    }
-    div[data-testid="stHorizontalBlock"] button *, div[data-testid="element-container"] button * {
+    }}
+    div[data-testid="stHorizontalBlock"] button *, div[data-testid="element-container"] button * {{
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
-    }
+    }}
 
     /* BOTÓN DE ACCIÓN (Verde, grande, sin cuadro negro de fondo) */
-    div.stButton > button {
+    div.stButton > button {{
         background-color: #25D366 !important;
         color: #1A1A1A !important;
         border: 2px solid #FFFFFF !important;
@@ -147,27 +169,27 @@ st.markdown("""
         padding: 16px 32px !important;
         width: 100% !important;
         box-shadow: 0px 6px 18px rgba(37, 211, 102, 0.4) !important;
-    }
-    div.stButton > button * {
+    }}
+    div.stButton > button * {{
         color: #1A1A1A !important;
         font-size: 19px !important;
         font-weight: 900 !important;
         -webkit-text-fill-color: #1A1A1A !important;
-    }
-    div.stButton > button:hover {
+    }}
+    div.stButton > button:hover {{
         background-color: #20BA56 !important;
-    }
+    }}
     
     /* Fotos miniatura controladas estilo catálogo */
-    .mini-foto img {
+    .mini-foto img {{
         max-height: 100px !important;
         object-fit: contain !important;
         border-radius: 6px;
         border: 1px solid #FFB3C6;
-    }
+    }}
     
     /* Caja de artículos adaptada a tarjeta pequeña */
-    .articulos-box-shein {
+    .articulos-box-shein {{
         background-color: #F8F9FA !important;
         color: #1A1A1A !important;
         padding: 10px;
@@ -178,14 +200,14 @@ st.markdown("""
         margin-bottom: 10px;
         max-height: 150px;
         overflow-y: auto;
-    }
+    }}
     
-    .badge-activo-shein {
+    .badge-activo-shein {{
         background-color: #D4EDDA; color: #155724; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block;
-    }
+    }}
     
     /* Botón HTML nativo para apertura forzada en pestaña nueva */
-    .btn-wa-nativo {
+    .btn-wa-nativo {{
         display: block;
         width: 100%;
         background-color: #25D366 !important;
@@ -199,22 +221,21 @@ st.markdown("""
         border: 2px solid #FFFFFF;
         box-shadow: 0px 6px 18px rgba(37, 211, 102, 0.4);
         margin-top: 10px;
-    }
-    .btn-wa-nativo:hover {
+    }}
+    .btn-wa-nativo:hover {{
         background-color: #20BA56 !important;
         color: #1A1A1A !important;
-    }
+    }}
 
-    .seccion-quejas {
+    .seccion-quejas {{
         text-align: center;
         font-size: 11px !important;
         color: #666666 !important;
         margin-top: 20px;
         font-weight: normal !important;
-    }
+    }}
 
-    /* Estilo para el contenedor de la advertencia de seguridad superior */
-    .alerta-seguridad-principal {
+    .alerta-seguridad-principal {{
         background-color: #FFF3CD !important;
         color: #856404 !important;
         padding: 20px;
@@ -222,15 +243,15 @@ st.markdown("""
         box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
         margin-bottom: 25px;
         border-left: 6px solid #FFC107;
-    }
-    .alerta-seguridad-principal p {
+    }}
+    .alerta-seguridad-principal p {{
         color: #856404 !important;
         font-size: 14px !important;
         font-weight: normal !important;
         margin: 0 !important;
-    }
+    }}
 
-    /* 📱 FILTRO DE INYECCIÓN DE PANTALLA PARA MÓVILES (ESTILO SHEIN PEQUEÑO) 📱 */
+    /* 📱 FILTRO PARA MÓVILES 📱 */
     @media (max-width: 768px) {
         div[data-testid="stHorizontalBlock"] {
             display: flex !important;
@@ -253,7 +274,6 @@ st.markdown("""
             font-size: 11px !important;
             max-height: 90px !important;
         }
-        
         div[data-testid="column"] div[data-testid="column"] {
             flex: 1 1 20% !important;
             min-width: 20% !important;
@@ -262,7 +282,6 @@ st.markdown("""
             max-height: 45px !important;
             object-fit: cover !important;
         }
-        
         .shein-card button {
             font-size: 11px !important;
             padding: 6px 4px !important;
@@ -271,17 +290,38 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- ENCABEZADO ---
+# ==========================================
+# 💾 MENÚ LATERAL ESTILO FACEBOOK (IZQUIERDA)
+# ==========================================
+with st.sidebar:
+    # Portada 2 colocada de forma vistosa arriba a la izquierda
+    st.markdown(f"""
+        <div class="portada-lateral-container">
+            <img src="{URL_PORTADA_LATERAL}" style="width: 100%; height: auto; display: block;">
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.title("📌 Navegación")
+    seccion_seleccionada = st.radio(
+        "Ir a:",
+        ["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐 Panel Admin"],
+        label_visibility="collapsed"
+    )
+    
+    st.markdown("---")
+    st.markdown('<div style="text-align: center; font-size: 12px; color: #555;">Bazar v2.0 • Monterrey</div>', unsafe_allow_html=True)
+
+# --- ENCABEZADO PRINCIPAL (COLUMNA DERECHA/CENTRAL) ---
 st.markdown('<div style="text-align:center; font-size:42px; font-weight:900; color:#D81159; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.4);">✨ BAZAR DIGITAL DE K-POP & CLÓSET ✨</div>', unsafe_allow_html=True)
 st.markdown('<div style="text-align:center; font-size:18px; color:white; font-weight:bold; margin-bottom:25px;">🛍️ Photocards, Coleccionables & Moda • Monterrey</div>', unsafe_allow_html=True)
 
-# --- PESTAÑAS PRINCIPALES ---
-tab_bazar, tab_anunciarse, tab_admin = st.tabs(["🛍️ Ver el Bazar / Clóset", "💜 Registrarse como Vendedora", "🔐"])
 
 # ==========================================
-# PESTAÑA 1: EL ESCAPARATE PÚBLICO
+# CONTROL DE VISTAS SEGÚN SELECCIÓN LATERAL
 # ==========================================
-with tab_bazar:
+
+# VISTA 1: EL ESCAPARATE PÚBLICO
+if seccion_seleccionada == "🛍️ Ver el Bazar / Clóset":
     st.markdown("""
         <div class="alerta-seguridad-principal">
             <p>
@@ -300,6 +340,7 @@ with tab_bazar:
     else:
         lista_bloques = list(bloques_activos.items())
         
+        # 🔄 ALGORITMO DE ROTACIÓN HORARIA ORIGINAL 🔄
         hora_actual = datetime.now().hour
         desplazamiento = hora_actual % len(lista_bloques)
         lista_rotada = lista_bloques[desplazamiento:] + lista_bloques[:desplazamiento]
@@ -355,10 +396,8 @@ with tab_bazar:
                         <br>
                     """, unsafe_allow_html=True)
 
-# ==========================================
-# PESTAÑA 2: REGISTRO DE VENDEDORAS
-# ==========================================
-with tab_anunciarse:
+# VISTA 2: REGISTRO DE VENDEDORAS
+elif seccion_seleccionada == "💜 Registrarse como Vendedora":
     st.subheader("💜 Registra tu Bloque de Anuncios")
     st.write("Costo por bloque: **$25 MXN** con una vigencia automática de 15 días.")
     
@@ -491,10 +530,8 @@ with tab_anunciarse:
                 
             st.markdown('</div>', unsafe_allow_html=True)
 
-# ==========================================
-# 🔐 PESTAÑA 3: PANEL DE CONTROL DE ADMINISTRADORA
-# ==========================================
-with tab_admin:
+# VISTA 3: PANEL DE CONTROL DE ADMINISTRADORA
+elif seccion_seleccionada == "🔐 Panel Admin":
     st.subheader("🔐 Consola de Verificación")
     clave_ingresada = st.text_input("Introduce la Contraseña de Administradora:", type="password", key="tab_admin_key")
     
