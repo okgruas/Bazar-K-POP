@@ -570,7 +570,7 @@ with tab_anunciarse:
             st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 🔐 PESTAÑA 3: 
+# 🔐 PESTAÑA 3: PANEL DE CONTROL DE ADMINISTRADORA
 # ==========================================
 with tab_admin:
     st.subheader("🔐 Consola de Verificación")
