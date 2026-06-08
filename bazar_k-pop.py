@@ -301,15 +301,22 @@ st.markdown("""
         font-weight: normal !important;
     }
 
+    /* 🎨 RE-ESTILIZADO: AVISO DE SEGURIDAD MÁS TENUE Y EN ARMONÍA CON LA WEB */
     .alerta-seguridad-principal {
-        background-color: #FFF3CD !important;
-        color: #856404 !important;
-        padding: 20px;
-        border-radius: 12px;
-        border-left: 6px solid #FFC107;
+        background-color: rgba(255, 255, 255, 0.5) !important; /* Blanco translúcido tenue */
+        color: #555555 !important; /* Gris oscuro elegante y suave */
+        padding: 18px;
+        border-radius: 14px;
+        border-left: 5px solid #FFB3C6; /* Borde rosa pastel sutil */
         margin-bottom: 25px;
+        backdrop-filter: blur(4px);
     }
-    .alerta-seguridad-principal p { color: #856404 !important; font-size: 14px !important; font-weight: normal !important; margin: 0 !important; }
+    .alerta-seguridad-principal p { 
+        color: #444444 !important; 
+        font-size: 13.5px !important; 
+        font-weight: normal !important; 
+        margin: 0 !important; 
+    }
 
     @media (max-width: 768px) {
         div[data-testid="stHorizontalBlock"] { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 10px !important; }
